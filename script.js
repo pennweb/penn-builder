@@ -1192,13 +1192,13 @@ function buildExportDocument() {
     .metric { min-height: 124px; display: grid; align-content: center; gap: 7px; border: 1px solid rgba(0,0,0,.14); border-radius: ${state.radius}px; padding: 18px; }
     .metric strong { font-family: ${activeFontStack()}; font-size: 34px; line-height: 1; }
     .metric span { color: color-mix(in srgb, ${palette.ink} 70%, transparent); font-weight: 750; }
-    .site-footer { display: grid; gap: clamp(26px, 4vw, 44px); padding-top: clamp(30px, 5vw, 58px); padding-bottom: 24px; background: #011f5b; color: #ffffff; }
+    .site-footer { display: grid; gap: clamp(26px, 4vw, 44px); padding-top: clamp(30px, 5vw, 58px); padding-bottom: 24px; background: #011f5b; color: #ffffff; font-family: "Roboto", Arial, sans-serif; }
     .footer-equal-opportunity { display: grid; gap: 10px; max-width: 980px; }
-    .footer-equal-opportunity h3, .footer-column h3 { margin: 0; font-family: ${activeFontStack()}; font-size: 15px; line-height: 1.25; letter-spacing: 0; text-transform: none; }
+    .footer-equal-opportunity h3, .footer-column h3 { margin: 0; font-family: inherit; font-size: 15px; line-height: 1.25; letter-spacing: 0; text-transform: none; }
     .footer-equal-opportunity p, .footer-brand p, .footer-column p { max-width: 68ch; color: rgba(255,255,255,.78); font-size: 13px; line-height: 1.6; }
     .footer-main { display: grid; grid-template-columns: minmax(220px, 1.15fr) minmax(150px, .65fr) minmax(240px, 1fr); gap: clamp(24px, 5vw, 68px); align-items: start; padding-top: clamp(24px, 4vw, 38px); border-top: 1px solid rgba(255,255,255,.22); }
     .footer-brand, .footer-column { display: grid; gap: 9px; }
-    .footer-brand strong { font-family: ${activeFontStack()}; font-size: clamp(24px, 3.4vw, 40px); line-height: 1; max-width: 10ch; }
+    .footer-brand strong { font-family: inherit; font-size: clamp(24px, 3.4vw, 40px); line-height: 1; max-width: 10ch; }
     .footer-inline-links, .footer-legal { display: flex; flex-wrap: wrap; gap: 8px 18px; }
     .site-footer a { color: #ffffff; font-size: 13px; font-weight: 800; text-decoration: none; text-underline-offset: 4px; }
     .site-footer a:hover { text-decoration: underline; }

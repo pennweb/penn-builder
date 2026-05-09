@@ -930,6 +930,7 @@ button:focus-visible {
   padding-bottom: 24px;
   background: #011f5b;
   color: #ffffff;
+  font-family: "Roboto", Arial, sans-serif;
 }
 
 .footer-equal-opportunity {
@@ -941,7 +942,7 @@ button:focus-visible {
 .footer-equal-opportunity h3,
 .footer-column h3 {
   margin: 0;
-  font-family: var(--site-heading-font, Inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: inherit;
   font-size: 15px;
   line-height: 1.25;
   letter-spacing: 0;
@@ -973,7 +974,7 @@ button:focus-visible {
 }
 
 .footer-brand strong {
-  font-family: var(--site-heading-font, Inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: inherit;
   font-size: clamp(24px, 3.4vw, 40px);
   line-height: 1;
   max-width: 10ch;

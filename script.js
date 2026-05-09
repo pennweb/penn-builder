@@ -65,6 +65,8 @@ const PENN_RESEARCH_MRNA_IMAGE = "assets/research-mrna.jpg";
 const PENN_RESEARCH_CHIP_IMAGE = "assets/research-chip.jpg";
 const PENN_RESEARCH_LAB_IMAGE = "assets/research-composito-lab.jpg";
 const PENN_RESEARCH_SUPERCOMPUTER_IMAGE = "assets/research-supercomputer.jpg";
+const PENN_LOGO_IMAGE = "assets/penn-logo.png";
+const PENN_REVERSED_LOGO_IMAGE = "assets/penn-logo-reverse.png";
 const PENN_HERO_IMAGE = PENN_COLLEGE_HALL_IMAGE;
 const PENN_GALLERY_CAMPUS = PENN_COLLEGE_HALL_IMAGE;
 const PENN_GALLERY_RESEARCH = PENN_FISHER_FINE_ARTS_IMAGE;
@@ -89,12 +91,13 @@ const PREVIEW_ID = "upenn-preview-2026-05-09-penn-buildings";
 const starterState = {
   previewId: PREVIEW_ID,
   videoSectionSeeded: true,
+  typographyDefaultsUpdated: true,
   siteTitle: "Penn",
   tagline: "A Philadelphia campus where rigorous teaching, interdisciplinary research, and civic engagement move ideas into the world.",
   audience: "Students, faculty, alumni, and visitors",
   palette: "penn-classic",
-  font: "EB Garamond",
-  secondaryFont: "Roboto",
+  font: "Roboto",
+  secondaryFont: "EB Garamond",
   radius: 6,
   selectedId: "hero",
   sections: [
@@ -270,6 +273,13 @@ function loadState() {
     const loadedState = { ...structuredClone(starterState), ...storedState };
     if (!Object.prototype.hasOwnProperty.call(storedState, "videoSectionSeeded")) {
       loadedState.videoSectionSeeded = false;
+    }
+    if (!Object.prototype.hasOwnProperty.call(storedState, "typographyDefaultsUpdated")) {
+      if (loadedState.font === "EB Garamond" && loadedState.secondaryFont === "Roboto") {
+        loadedState.font = "Roboto";
+        loadedState.secondaryFont = "EB Garamond";
+      }
+      loadedState.typographyDefaultsUpdated = true;
     }
     if (loadedState.sections && loadedState.sections[0] && loadedState.sections[0].id === "hero" && loadedState.sections[0].layout === "feature") {
       loadedState.sections[0].layout = "hero";
@@ -1068,7 +1078,9 @@ function buildSiteHtml(includeHidden) {
 
   return `
     <nav class="site-nav" id="top">
-      <div class="site-logo">${escapeHtml(state.siteTitle)}</div>
+      <div class="site-logo">
+        <img src="${PENN_LOGO_IMAGE}" alt="Penn">
+      </div>
       <div class="site-pill">${escapeHtml(state.audience)}</div>
     </nav>
     ${visibleSections.map(buildSectionHtml).join("")}
@@ -1086,7 +1098,7 @@ function buildFooterHtml() {
       </section>
       <div class="footer-main">
         <div class="footer-brand">
-          <strong>University of Pennsylvania</strong>
+          <img class="footer-logo" src="${PENN_REVERSED_LOGO_IMAGE}" alt="University of Pennsylvania">
           <p>Philadelphia, PA 19104</p>
           <p>Telephone: (215) 898-5000</p>
           <div class="footer-inline-links" aria-label="Contact links">
@@ -1139,7 +1151,8 @@ function buildExportDocument() {
     h2, h3, summary, strong, .site-logo, .site-cta { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
     .site-nav, .site-section, .site-footer { padding-left: clamp(20px, 5vw, 70px); padding-right: clamp(20px, 5vw, 70px); }
     .site-nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: ${palette.paper}; border-bottom: 1px solid rgba(0,0,0,.12); }
-    .site-logo { font-family: ${activeFontStack()}; font-weight: 900; font-size: 19px; }
+    .site-logo { display: block; width: min(220px, 42vw); font-family: ${activeFontStack()}; font-weight: 900; font-size: 19px; }
+    .site-logo img { display: block; width: 100%; height: auto; }
     .site-pill { border: 1px solid ${palette.accent}; color: ${palette.accent}; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 850; }
     .site-hero { min-height: 470px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(220px, .95fr); background: ${palette.paper}; }
     .site-hero.image-left .site-hero-image { order: -1; }
@@ -1192,19 +1205,19 @@ function buildExportDocument() {
     .metric { min-height: 124px; display: grid; align-content: center; gap: 7px; border: 1px solid rgba(0,0,0,.14); border-radius: ${state.radius}px; padding: 18px; }
     .metric strong { font-family: ${activeFontStack()}; font-size: 34px; line-height: 1; }
     .metric span { color: color-mix(in srgb, ${palette.ink} 70%, transparent); font-weight: 750; }
-    .site-footer { display: grid; gap: clamp(26px, 4vw, 44px); padding-top: clamp(30px, 5vw, 58px); padding-bottom: 24px; background: #011f5b; color: #ffffff; font-family: "Roboto", Arial, sans-serif; }
+    .site-footer { display: grid; gap: clamp(18px, 3vw, 30px); padding-top: clamp(22px, 4vw, 38px); padding-bottom: 20px; background: #011f5b; color: #ffffff; font-family: "Roboto", Arial, sans-serif; overflow-wrap: anywhere; }
     .footer-equal-opportunity { display: grid; gap: 10px; max-width: 980px; }
     .footer-equal-opportunity h3, .footer-column h3 { margin: 0; font-family: inherit; font-size: 15px; line-height: 1.25; letter-spacing: 0; text-transform: none; }
     .footer-equal-opportunity p, .footer-brand p, .footer-column p { max-width: 68ch; color: rgba(255,255,255,.78); font-size: 13px; line-height: 1.6; }
-    .footer-main { display: grid; grid-template-columns: minmax(220px, 1.15fr) minmax(150px, .65fr) minmax(240px, 1fr); gap: clamp(24px, 5vw, 68px); align-items: start; padding-top: clamp(24px, 4vw, 38px); border-top: 1px solid rgba(255,255,255,.22); }
-    .footer-brand, .footer-column { display: grid; gap: 9px; }
-    .footer-brand strong { font-family: inherit; font-size: clamp(24px, 3.4vw, 40px); line-height: 1; max-width: 10ch; }
+    .footer-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .65fr) minmax(0, 1fr); gap: clamp(18px, 4vw, 44px); align-items: start; padding-top: clamp(18px, 3vw, 28px); border-top: 1px solid rgba(255,255,255,.22); }
+    .footer-brand, .footer-column { display: grid; gap: 9px; min-width: 0; }
+    .footer-logo { display: block; justify-self: start; align-self: start; width: min(220px, 100%); height: auto; }
     .footer-inline-links, .footer-legal { display: flex; flex-wrap: wrap; gap: 8px 18px; }
-    .site-footer a { color: #ffffff; font-size: 13px; font-weight: 800; text-decoration: none; text-underline-offset: 4px; }
+    .site-footer a { color: #ffffff; font-size: 13px; font-weight: 800; text-decoration: none; text-underline-offset: 4px; overflow-wrap: anywhere; }
     .site-footer a:hover { text-decoration: underline; }
-    .footer-bottom { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
+    .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: flex-start; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
     .footer-legal { max-width: 860px; }
-    .back-to-top { white-space: nowrap; }
+    .back-to-top { white-space: normal; }
     @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
   </style>
 </head>

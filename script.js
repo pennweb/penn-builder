@@ -55,6 +55,19 @@ const fontStacks = {
   "Trebuchet MS": '"Trebuchet MS", Tahoma, sans-serif'
 };
 
+const layoutLabels = {
+  hero: "Hero",
+  text: "Text",
+  feature: "Feature",
+  split: "Split",
+  quote: "Quote",
+  stats: "Stats",
+  image: "Image",
+  accordion: "Accordion",
+  gallery: "Gallery",
+  video: "Video"
+};
+
 const PENN_COLLEGE_HALL_IMAGE = "assets/college-hall.jpg";
 const PENN_FISHER_FINE_ARTS_IMAGE = "assets/fisher-fine-arts-library.jpg";
 const PENN_STUDENT_ORIENTATION_IMAGE = "assets/student-life-orientation.jpg";
@@ -104,6 +117,7 @@ const starterState = {
     {
       id: "hero",
       layout: "hero",
+      label: "Hero",
       heading: "Penn",
       body: "Rooted in Philadelphia and connected to the world, Penn brings teaching, research, service, and innovation together across a historic urban campus.",
       buttonText: "Explore Penn",
@@ -114,6 +128,7 @@ const starterState = {
     {
       id: "principle",
       layout: "text",
+      label: "Text",
       heading: "In principle and practice",
       body: "Penn's preview story is built around academic breadth, research intensity, civic purpose, and a campus culture shaped by Philadelphia. This section uses the full-width Text layout for a broad institutional message.",
       visible: true
@@ -121,6 +136,7 @@ const starterState = {
     {
       id: "academics",
       layout: "split",
+      label: "Split",
       heading: "Academics across a connected university.",
       body: "Four undergraduate schools and 12 graduate and professional schools create a distinctive ecosystem for learning across liberal arts, business, engineering, design, law, medicine, education, policy, and more.",
       buttonText: "View academics",
@@ -129,6 +145,7 @@ const starterState = {
     {
       id: "facts",
       layout: "stats",
+      label: "Stats",
       heading: "Penn Facts",
       body: "1740 Year founded|8:1 Student-faculty ratio|$1.33B 2026 research budget",
       visible: true
@@ -136,6 +153,7 @@ const starterState = {
     {
       id: "research",
       layout: "feature",
+      label: "Feature",
       heading: "Research and innovation with public purpose.",
       body: "Penn's research enterprise spans medicine, technology, business, science, the humanities, and the social sciences, pairing discovery with practical impact for communities nearby and around the world.",
       buttonText: "Research at Penn",
@@ -144,6 +162,7 @@ const starterState = {
     {
       id: "campus-life",
       layout: "accordion",
+      label: "Accordion",
       heading: "Campus life overview",
       body: "",
       accordionItems: [
@@ -173,6 +192,7 @@ const starterState = {
     {
       id: "gallery",
       layout: "gallery",
+      label: "Gallery",
       heading: "Scenes from Penn",
       body: "A scrollable preview gallery for Penn buildings, student life, and research.",
       galleryImages: PENN_GALLERY_IMAGES.map((src, index) => ({
@@ -184,6 +204,7 @@ const starterState = {
     {
       id: "philadelphia",
       layout: "image",
+      label: "Image",
       heading: "Penn and Philadelphia",
       body: "A campus shaped by its city, with partnerships, public engagement, and discovery extending across Philadelphia and beyond.",
       image: PENN_GALLERY_CITY,
@@ -192,6 +213,7 @@ const starterState = {
     {
       id: "video",
       layout: "video",
+      label: "Video",
       heading: "A quick comic intermission.",
       body: "Use this full-width video section for a little levity, a launch film, or any YouTube or Vimeo story you want to feature.",
       videoUrl: DEFAULT_VIDEO_URL,
@@ -200,6 +222,7 @@ const starterState = {
     {
       id: "quote",
       layout: "quote",
+      label: "Quote",
       heading: "Creating knowledge to benefit the world.",
       body: "A Penn-inspired close for the preview: ambitious, civic-minded, research-driven, and grounded in a historic campus community.",
       visible: true
@@ -227,6 +250,7 @@ const elements = {
   sectionBodyField: document.querySelector("#sectionBodyField"),
   sectionBody: document.querySelector("#sectionBody"),
   layoutChoice: document.querySelector("#layoutChoice"),
+  sectionLabel: document.querySelector("#sectionLabel"),
   buttonTextField: document.querySelector("#buttonTextField"),
   buttonText: document.querySelector("#buttonText"),
   videoUrlField: document.querySelector("#videoUrlField"),
@@ -299,6 +323,7 @@ function defaultVideoSection() {
   return {
     id: "video",
     layout: "video",
+    label: "Video",
     heading: "A quick comic intermission.",
     body: "Use this full-width video section for a little levity, a launch film, or any YouTube or Vimeo story you want to feature.",
     videoUrl: DEFAULT_VIDEO_URL,
@@ -600,6 +625,11 @@ function readImageFile(file, onLoad) {
 }
 
 function sectionLabel(section) {
+  const explicitLabel = section.label ? section.label.trim() : "";
+  if (explicitLabel) return explicitLabel;
+
+  if (layoutLabels[section.layout]) return layoutLabels[section.layout];
+
   const words = section.heading.trim().split(/\s+/).slice(0, 4).join(" ");
   return words || "Untitled section";
 }
@@ -720,6 +750,8 @@ function renderInspector() {
   if (!section) return;
 
   elements.inspectorTitle.textContent = sectionLabel(section);
+  elements.sectionLabel.value = section.label || layoutLabels[section.layout] || "";
+  elements.sectionLabel.placeholder = layoutLabels[section.layout] || "Section";
   elements.sectionHeading.value = section.heading;
   elements.sectionBody.value = section.body;
   elements.layoutChoice.value = section.layout;
@@ -912,12 +944,12 @@ function buildSectionHtml(section) {
 
     return `
       <header class="site-hero${imagePositionClass}">
+        <img class="site-hero-image" src="${heroImage}" alt="${heroAlt}">
         <div class="site-hero-copy">
           <h2>${heading}</h2>
           <p>${body || escapeHtml(state.tagline)}</p>
           <a class="site-cta" href="#contact">${buttonText}</a>
         </div>
-        <img class="site-hero-image" src="${heroImage}" alt="${heroAlt}">
       </header>
     `;
   }
@@ -1156,6 +1188,7 @@ function buildExportDocument() {
     .site-pill { border: 1px solid ${palette.accent}; color: ${palette.accent}; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 850; }
     .site-hero { min-height: 470px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(220px, .95fr); background: ${palette.paper}; }
     .site-hero.image-left .site-hero-image { order: -1; }
+    .site-hero:not(.image-left) .site-hero-copy { order: -1; }
     .site-hero-copy { padding: clamp(34px, 7vw, 82px) clamp(20px, 5vw, 70px); display: grid; align-content: center; gap: 18px; }
     .site-hero h2 { margin: 0; max-width: 10ch; font-family: ${activeFontStack()}; font-size: 68px; line-height: .98; letter-spacing: 0; text-wrap: balance; }
     .site-hero p, .site-section p, .site-footer p { margin: 0; line-height: 1.65; }
@@ -1218,7 +1251,7 @@ function buildExportDocument() {
     .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: flex-start; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
     .footer-legal { max-width: 860px; }
     .back-to-top { white-space: normal; }
-    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
+    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
   </style>
 </head>
 <body>
@@ -1353,6 +1386,12 @@ function bindInputs() {
     });
   });
 
+  elements.sectionLabel.addEventListener("input", (event) => {
+    updateSelectedSection((section) => {
+      section.label = event.target.value;
+    });
+  });
+
   elements.sectionHeading.addEventListener("input", (event) => {
     updateSelectedSection((section) => {
       section.heading = event.target.value;
@@ -1367,7 +1406,13 @@ function bindInputs() {
 
   elements.layoutChoice.addEventListener("change", (event) => {
     updateSelectedSection((section) => {
+      const previousLayout = section.layout;
+      const previousDefaultLabel = layoutLabels[previousLayout];
+      const hadDefaultLayoutLabel = !section.label || section.label === previousDefaultLabel;
       section.layout = event.target.value;
+      if (hadDefaultLayoutLabel) {
+        section.label = layoutLabels[section.layout] || "";
+      }
       if (section.layout === "accordion") {
         accordionItemsFor(section);
       } else if (section.layout === "gallery") {
@@ -1543,6 +1588,7 @@ function bindInputs() {
       state.sections.push({
         id,
         layout: "feature",
+        label: "Feature",
         heading: "A focused new section.",
         body: "Add a concise point, proof, or offer that makes the page stronger.",
         visible: true

@@ -1207,6 +1207,7 @@ function buildExportDocument() {
   <style>
     body { margin: 0; color: ${palette.ink}; background: ${palette.paper}; font-family: ${activeSecondaryFontStack()}; }
     h2, h3, summary, strong, .site-logo, .site-cta { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
+    a[href^="http"]::after { content: "↗"; display: inline-block; margin-left: .35em; color: currentColor; font-family: ${activeFontStack()}; font-size: .8em; font-weight: 900; line-height: 1; text-decoration: none; }
     .site-nav, .site-section, .site-footer { padding-left: clamp(20px, 5vw, 70px); padding-right: clamp(20px, 5vw, 70px); }
     .site-nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: ${palette.paper}; border-bottom: 1px solid rgba(0,0,0,.12); }
     .site-logo { display: block; width: min(220px, 42vw); font-family: ${activeFontStack()}; font-weight: 900; font-size: 19px; }

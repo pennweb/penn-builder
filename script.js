@@ -100,6 +100,17 @@ const DEFAULT_HERO_IMAGE = PENN_HERO_IMAGE;
 const OLD_DEFAULT_VIDEO_URLS = ["https://vimeo.com/416160065"];
 const DEFAULT_VIDEO_URL = "https://vimeo.com/1084537";
 const PREVIEW_ID = "upenn-preview-2026-05-09-penn-buildings";
+const PENN_RESOURCE_LINKS = [
+  { label: "Current Students", href: "https://path.at.upenn.edu/" },
+  { label: "Faculty & Staff", href: "https://portal.apps.upenn.edu/" },
+  { label: "Parents", href: "https://www.upenn.edu/life-at-penn/parents" },
+  { label: "Alumni", href: "https://www.alumni.upenn.edu/" },
+  { label: "Visitors", href: "https://www.upenn.edu/life-at-penn/visitors" },
+  { label: "Media", href: "https://university-communications.upenn.edu/" },
+  { label: "Directory", href: "https://directory.apps.upenn.edu/" },
+  { label: "Webmail", href: "https://provider.www.upenn.edu/computing/email/" },
+  { label: "Services", href: "https://www.upenn.edu/services" }
+];
 
 const starterState = {
   previewId: PREVIEW_ID,
@@ -107,7 +118,6 @@ const starterState = {
   typographyDefaultsUpdated: true,
   siteTitle: "Penn",
   tagline: "A Philadelphia campus where rigorous teaching, interdisciplinary research, and civic engagement move ideas into the world.",
-  audience: "Students, faculty, alumni, and visitors",
   palette: "penn-classic",
   font: "Roboto",
   secondaryFont: "EB Garamond",
@@ -240,7 +250,6 @@ let suppressNextSectionClick = false;
 const elements = {
   siteTitle: document.querySelector("#siteTitle"),
   tagline: document.querySelector("#tagline"),
-  audience: document.querySelector("#audience"),
   fontChoice: document.querySelector("#fontChoice"),
   secondaryFontChoice: document.querySelector("#secondaryFontChoice"),
   radiusControl: document.querySelector("#radiusControl"),
@@ -889,7 +898,6 @@ function removeGalleryImage(imageId) {
 function renderControls() {
   elements.siteTitle.value = state.siteTitle;
   elements.tagline.value = state.tagline;
-  elements.audience.value = state.audience;
   elements.fontChoice.value = state.font;
   elements.secondaryFontChoice.value = state.secondaryFont || "Inter";
   elements.radiusControl.value = state.radius;
@@ -1113,10 +1121,28 @@ function buildSiteHtml(includeHidden) {
       <div class="site-logo">
         <img src="${PENN_LOGO_IMAGE}" alt="Penn">
       </div>
-      <div class="site-pill">${escapeHtml(state.audience)}</div>
+      ${buildResourcesMenuHtml()}
     </nav>
     ${visibleSections.map(buildSectionHtml).join("")}
     ${buildFooterHtml()}
+  `;
+}
+
+function buildResourcesMenuHtml() {
+  return `
+    <details class="resources-menu">
+      <summary>
+        <span>Resources</span>
+        <span class="resources-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="resources-panel">
+        <div class="resources-panel-title">Resources</div>
+        <div class="resources-list">
+          ${PENN_RESOURCE_LINKS.map((link) => `<a href="${link.href}" target="_blank" rel="noreferrer">${link.label}</a>`).join("")}
+        </div>
+        <a class="resources-give" href="https://giving.aws.cloud.upenn.edu/" target="_blank" rel="noreferrer">Give to Penn</a>
+      </div>
+    </details>
   `;
 }
 
@@ -1185,7 +1211,18 @@ function buildExportDocument() {
     .site-nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: ${palette.paper}; border-bottom: 1px solid rgba(0,0,0,.12); }
     .site-logo { display: block; width: min(220px, 42vw); font-family: ${activeFontStack()}; font-weight: 900; font-size: 19px; }
     .site-logo img { display: block; width: 100%; height: auto; }
-    .site-pill { border: 1px solid ${palette.accent}; color: ${palette.accent}; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 850; }
+    .resources-menu { position: relative; font-family: ${activeFontStack()}; color: ${palette.ink}; z-index: 5; }
+    .resources-menu summary { min-height: 38px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(0,0,0,.16); border-radius: 999px; padding: 0 13px; list-style: none; cursor: pointer; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+    .resources-menu summary::-webkit-details-marker { display: none; }
+    .resources-chevron { font-size: 14px; line-height: 1; }
+    .resources-menu[open] .resources-chevron { transform: rotate(180deg); }
+    .resources-panel { position: absolute; top: calc(100% + 12px); right: 0; width: min(330px, 82vw); display: grid; gap: 14px; padding: 18px; border: 1px solid rgba(0,0,0,.16); background: ${palette.paper}; box-shadow: 0 22px 50px rgba(0,0,0,.16); }
+    .resources-panel-title { color: ${palette.accent}; font-size: 11px; font-weight: 900; text-transform: uppercase; }
+    .resources-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 14px; }
+    .resources-list a, .resources-give { min-height: 32px; display: flex; align-items: center; color: ${palette.ink}; font-size: 13px; font-weight: 850; text-decoration: none; overflow-wrap: anywhere; }
+    .resources-list a:hover, .resources-give:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .resources-give { width: fit-content; min-height: 36px; border-radius: ${state.radius}px; background: ${palette.accent}; color: #ffffff; padding: 0 13px; text-decoration: none; }
+    .resources-give:hover { text-decoration: none; }
     .site-hero { min-height: 470px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(220px, .95fr); background: ${palette.paper}; }
     .site-hero.image-left .site-hero-image { order: -1; }
     .site-hero:not(.image-left) .site-hero-copy { order: -1; }
@@ -1251,7 +1288,7 @@ function buildExportDocument() {
     .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: flex-start; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
     .footer-legal { max-width: 860px; }
     .back-to-top { white-space: normal; }
-    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
+    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .resources-panel { left: 0; right: auto; width: min(300px, 76vw); } .resources-list { grid-template-columns: 1fr; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
   </style>
 </head>
 <body>
@@ -1359,12 +1396,6 @@ function bindInputs() {
   elements.tagline.addEventListener("input", (event) => {
     recordChange(() => {
       state.tagline = event.target.value;
-    });
-  });
-
-  elements.audience.addEventListener("input", (event) => {
-    recordChange(() => {
-      state.audience = event.target.value;
     });
   });
 

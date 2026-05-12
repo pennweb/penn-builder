@@ -756,8 +756,23 @@ button:focus-visible {
 }
 
 .site-section.quote {
+  background: var(--site-accent, #176c66);
+  color: #ffffff;
+}
+
+.site-section.quote.white {
+  background: #ffffff;
+  color: var(--site-ink, #221f1a);
+}
+
+.site-section.quote.blue {
   background: var(--site-ink, #221f1a);
-  color: var(--site-paper, #faf8f0);
+  color: #ffffff;
+}
+
+.site-section.quote.red {
+  background: var(--site-accent, #176c66);
+  color: #ffffff;
 }
 
 .site-section.stats {
@@ -932,8 +947,8 @@ button:focus-visible {
 .gallery-track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(230px, 34%);
-  gap: 14px;
+  grid-auto-columns: minmax(600px, 80%);
+  gap: 18px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding-bottom: 8px;
@@ -942,7 +957,7 @@ button:focus-visible {
 }
 
 .gallery-card {
-  min-height: 280px;
+  aspect-ratio: 3 / 2;
   border-radius: var(--site-radius, 8px);
   overflow: hidden;
   scroll-snap-align: start;
@@ -952,7 +967,6 @@ button:focus-visible {
 .gallery-card img {
   width: 100%;
   height: 100%;
-  min-height: 280px;
   display: block;
   object-fit: cover;
 }

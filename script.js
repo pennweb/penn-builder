@@ -58,10 +58,10 @@ const fontStacks = {
 const layoutLabels = {
   hero: "Hero",
   text: "Text",
-  feature: "Feature",
+  feature: "Fullbleed",
   split: "Split",
   quote: "Quote",
-  stats: "Stats",
+  stats: "Facts",
   image: "Image",
   accordion: "Accordion",
   gallery: "Gallery",
@@ -157,7 +157,7 @@ const starterState = {
     {
       id: "facts",
       layout: "stats",
-      label: "Stats",
+      label: "Facts",
       heading: "Penn Facts",
       body: "1740 Year founded|8:1 Student-faculty ratio|$1.33B 2026 research budget",
       visible: true
@@ -165,7 +165,7 @@ const starterState = {
     {
       id: "research",
       layout: "feature",
-      label: "Feature",
+      label: "Fullbleed",
       heading: "Research and innovation with public purpose.",
       body: "Penn's research enterprise spans medicine, technology, business, science, the humanities, and the social sciences, pairing discovery with practical impact for communities nearby and around the world.",
       buttonText: "Research at Penn",
@@ -269,6 +269,7 @@ const starterState = {
       label: "Quote",
       heading: "Creating knowledge to benefit the world.",
       body: "A Penn-inspired close for the preview: ambitious, civic-minded, research-driven, and grounded in a historic campus community.",
+      quoteColor: "red",
       visible: true
     }
   ]
@@ -308,6 +309,8 @@ const elements = {
   heroImagePreview: document.querySelector("#heroImagePreview"),
   heroImagePositionField: document.querySelector("#heroImagePositionField"),
   heroImagePositionInputs: document.querySelectorAll('input[name="heroImagePosition"]'),
+  quoteColorField: document.querySelector("#quoteColorField"),
+  quoteColorInputs: document.querySelectorAll('input[name="quoteColor"]'),
   accordionEditor: document.querySelector("#accordionEditor"),
   accordionItemEditorList: document.querySelector("#accordionItemEditorList"),
   addAccordionItemBtn: document.querySelector("#addAccordionItemBtn"),
@@ -811,7 +814,7 @@ function renderSectionList() {
     item.dataset.sectionId = section.id;
     item.classList.toggle("active", section.id === state.selectedId);
     item.querySelector(".section-item-title").textContent = sectionLabel(section);
-    item.querySelector(".section-item-kind").textContent = `${section.layout}${section.visible ? "" : " hidden"}`;
+    item.querySelector(".section-item-kind").textContent = `${layoutLabels[section.layout] || section.layout}${section.visible ? "" : " hidden"}`;
     item.addEventListener("click", (event) => {
       if (suppressNextSectionClick) {
         event.preventDefault();
@@ -930,6 +933,10 @@ function renderInspector() {
   elements.heroImagePositionField.hidden = section.layout !== "hero";
   elements.heroImagePositionInputs.forEach((input) => {
     input.checked = input.value === (section.heroImagePosition || "right");
+  });
+  elements.quoteColorField.hidden = section.layout !== "quote";
+  elements.quoteColorInputs.forEach((input) => {
+    input.checked = input.value === (section.quoteColor || "red");
   });
   elements.accordionEditor.hidden = section.layout !== "accordion";
   elements.galleryEditor.hidden = section.layout !== "gallery";
@@ -1364,8 +1371,10 @@ function buildSectionHtml(section) {
   }
 
   if (section.layout === "quote") {
+    const color = ["white", "blue", "red"].includes(section.quoteColor) ? section.quoteColor : "red";
+
     return `
-      <section class="site-section quote">
+      <section class="site-section quote ${color}">
         <div class="site-copy">
           <h3>${heading}</h3>
           <p>${body}</p>
@@ -1511,7 +1520,10 @@ function buildExportDocument() {
     .site-section.text .site-copy { max-width: none; }
     .site-section.text p { width: 100%; max-width: none; font-size: 18px; }
     .site-section.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; background: color-mix(in srgb, ${palette.paper} 82%, #ffffff); }
-    .site-section.quote { background: ${palette.ink}; color: ${palette.paper}; }
+    .site-section.quote { background: ${palette.accent}; color: #ffffff; }
+    .site-section.quote.white { background: #ffffff; color: ${palette.ink}; }
+    .site-section.quote.blue { background: ${palette.ink}; color: #ffffff; }
+    .site-section.quote.red { background: ${palette.accent}; color: #ffffff; }
     .site-section.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .site-section.accordion { display: grid; grid-template-columns: 1fr; gap: clamp(22px, 5vw, 70px); align-items: start; background: color-mix(in srgb, ${palette.paper} 88%, #ffffff); }
     .site-section.gallery { display: grid; gap: 22px; background: color-mix(in srgb, ${palette.paper} 88%, #ffffff); }
@@ -1545,9 +1557,9 @@ function buildExportDocument() {
     .gallery-panel { display: grid; gap: 10px; }
     .gallery-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
     .gallery-action { min-height: 34px; border: 1px solid rgba(0,0,0,.16); border-radius: ${state.radius}px; background: transparent; color: ${palette.ink}; padding: 0 11px; font-family: ${activeFontStack()}; font-size: 12px; font-weight: 850; }
-    .gallery-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 34%); gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 8px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
-    .gallery-card { min-height: 280px; border-radius: ${state.radius}px; overflow: hidden; scroll-snap-align: start; background: rgba(0,0,0,.08); }
-    .gallery-card img { width: 100%; height: 100%; min-height: 280px; display: block; object-fit: cover; }
+    .gallery-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(600px, 80%); gap: 18px; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 8px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+    .gallery-card { aspect-ratio: 3 / 2; border-radius: ${state.radius}px; overflow: hidden; scroll-snap-align: start; background: rgba(0,0,0,.08); }
+    .gallery-card img { width: 100%; height: 100%; display: block; object-fit: cover; }
     .gallery-placeholder { min-height: 220px; display: grid; place-items: center; border: 1px dashed rgba(0,0,0,.22); border-radius: ${state.radius}px; color: color-mix(in srgb, ${palette.ink} 62%, transparent); font-weight: 850; }
     .site-section.image { position: relative; min-height: 430px; padding: 0; overflow: hidden; display: grid; align-items: end; isolation: isolate; }
     .site-section.image::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.58)); }
@@ -1734,6 +1746,8 @@ function bindInputs() {
         galleryImagesFor(section);
       } else if (section.layout === "cards") {
         cardItemsFor(section);
+      } else if (section.layout === "quote" && !section.quoteColor) {
+        section.quoteColor = "red";
       } else if (section.layout === "video" && !section.videoUrl) {
         section.videoUrl = DEFAULT_VIDEO_URL;
       }
@@ -1833,6 +1847,14 @@ function bindInputs() {
     });
   });
 
+  elements.quoteColorInputs.forEach((input) => {
+    input.addEventListener("change", (event) => {
+      updateSelectedSection((section) => {
+        section.quoteColor = event.target.value;
+      });
+    });
+  });
+
   elements.galleryUpload.addEventListener("change", (event) => {
     const files = event.target.files;
     if (!files.length) return;
@@ -1926,7 +1948,7 @@ function bindInputs() {
       state.sections.push({
         id,
         layout: "feature",
-        label: "Feature",
+        label: "Fullbleed",
         heading: "A focused new section.",
         body: "Add a concise point, proof, or offer that makes the page stronger.",
         visible: true

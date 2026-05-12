@@ -65,6 +65,7 @@ const layoutLabels = {
   image: "Image",
   accordion: "Accordion",
   gallery: "Gallery",
+  cards: "Cards",
   video: "Video"
 };
 
@@ -115,6 +116,7 @@ const PENN_RESOURCE_LINKS = [
 const starterState = {
   previewId: PREVIEW_ID,
   videoSectionSeeded: true,
+  cardsSectionSeeded: true,
   typographyDefaultsUpdated: true,
   siteTitle: "Penn",
   tagline: "A Philadelphia campus where rigorous teaching, interdisciplinary research, and civic engagement move ideas into the world.",
@@ -221,6 +223,38 @@ const starterState = {
       visible: true
     },
     {
+      id: "cards",
+      layout: "cards",
+      label: "Cards",
+      heading: "Explore Penn",
+      body: "Use cards to highlight high-priority paths, stories, or calls to action with color and imagery.",
+      cardColumns: 3,
+      cardItems: [
+        {
+          id: "card-student-life",
+          title: "Student Life",
+          body: "Clubs, traditions, cultural centers, performances, and campus events make Penn feel active every week.",
+          color: "white",
+          image: PENN_STUDENT_HOLI_IMAGE
+        },
+        {
+          id: "card-research",
+          title: "Research",
+          body: "Labs, clinics, studios, and institutes connect discovery with practical impact across disciplines.",
+          color: "blue",
+          image: PENN_RESEARCH_LAB_IMAGE
+        },
+        {
+          id: "card-campus",
+          title: "Campus Landmarks",
+          body: "Historic buildings and green spaces anchor a campus woven into the life of Philadelphia.",
+          color: "red",
+          image: PENN_FISHER_FINE_ARTS_IMAGE
+        }
+      ],
+      visible: true
+    },
+    {
       id: "video",
       layout: "video",
       label: "Video",
@@ -280,6 +314,10 @@ const elements = {
   galleryEditor: document.querySelector("#galleryEditor"),
   galleryUpload: document.querySelector("#galleryUpload"),
   galleryImageList: document.querySelector("#galleryImageList"),
+  cardsEditor: document.querySelector("#cardsEditor"),
+  cardColumnsInputs: document.querySelectorAll('input[name="cardColumns"]'),
+  cardItemEditorList: document.querySelector("#cardItemEditorList"),
+  addCardItemBtn: document.querySelector("#addCardItemBtn"),
   visibleToggle: document.querySelector("#visibleToggle"),
   inspectorTitle: document.querySelector("#inspectorTitle"),
   previewFrame: document.querySelector("#previewFrame"),
@@ -307,6 +345,9 @@ function loadState() {
     if (!Object.prototype.hasOwnProperty.call(storedState, "videoSectionSeeded")) {
       loadedState.videoSectionSeeded = false;
     }
+    if (!Object.prototype.hasOwnProperty.call(storedState, "cardsSectionSeeded")) {
+      loadedState.cardsSectionSeeded = false;
+    }
     if (!Object.prototype.hasOwnProperty.call(storedState, "typographyDefaultsUpdated")) {
       if (loadedState.font === "EB Garamond" && loadedState.secondaryFont === "Roboto") {
         loadedState.font = "Roboto";
@@ -321,6 +362,7 @@ function loadState() {
       }
     }
     replaceBrokenPreviewImages(loadedState);
+    ensureCardsSection(loadedState);
     ensureVideoSection(loadedState);
     return loadedState;
   } catch {
@@ -336,6 +378,19 @@ function defaultVideoSection() {
     heading: "A quick comic intermission.",
     body: "Use this full-width video section for a little levity, a launch film, or any YouTube or Vimeo story you want to feature.",
     videoUrl: DEFAULT_VIDEO_URL,
+    visible: true
+  };
+}
+
+function defaultCardsSection() {
+  return {
+    id: "cards",
+    layout: "cards",
+    label: "Cards",
+    heading: "Explore Penn",
+    body: "Use cards to highlight high-priority paths, stories, or calls to action with color and imagery.",
+    cardColumns: 3,
+    cardItems: defaultCardItems(),
     visible: true
   };
 }
@@ -360,6 +415,25 @@ function ensureVideoSection(targetState) {
   const insertIndex = quoteIndex === -1 ? targetState.sections.length : quoteIndex;
   targetState.sections.splice(insertIndex, 0, defaultVideoSection());
   targetState.videoSectionSeeded = true;
+}
+
+function ensureCardsSection(targetState) {
+  if (!targetState.sections) return;
+
+  const existingCardsSection = targetState.sections.find((section) => section.layout === "cards");
+  if (existingCardsSection) {
+    existingCardsSection.cardItems = cardItemsFor(existingCardsSection);
+    targetState.cardsSectionSeeded = true;
+    return;
+  }
+
+  if (targetState.cardsSectionSeeded) return;
+
+  const videoIndex = targetState.sections.findIndex((section) => section.layout === "video");
+  const quoteIndex = targetState.sections.findIndex((section) => section.layout === "quote");
+  const insertIndex = videoIndex !== -1 ? videoIndex : quoteIndex !== -1 ? quoteIndex : targetState.sections.length;
+  targetState.sections.splice(insertIndex, 0, defaultCardsSection());
+  targetState.cardsSectionSeeded = true;
 }
 
 function replaceBrokenPreviewImages(targetState) {
@@ -493,6 +567,64 @@ function galleryImagesFor(section) {
   });
 
   return section.galleryImages;
+}
+
+function defaultCardItems() {
+  return [
+    {
+      id: `card-${Date.now()}-1`,
+      title: "Student Life",
+      body: "Clubs, traditions, cultural centers, performances, and campus events make Penn feel active every week.",
+      color: "white",
+      image: PENN_STUDENT_HOLI_IMAGE
+    },
+    {
+      id: `card-${Date.now()}-2`,
+      title: "Research",
+      body: "Labs, clinics, studios, and institutes connect discovery with practical impact across disciplines.",
+      color: "blue",
+      image: PENN_RESEARCH_LAB_IMAGE
+    },
+    {
+      id: `card-${Date.now()}-3`,
+      title: "Campus Landmarks",
+      body: "Historic buildings and green spaces anchor a campus woven into the life of Philadelphia.",
+      color: "red",
+      image: PENN_FISHER_FINE_ARTS_IMAGE
+    }
+  ];
+}
+
+function cardItemsFor(section) {
+  if (!section.cardItems || !section.cardItems.length) {
+    section.cardItems = defaultCardItems();
+  }
+
+  section.cardItems = section.cardItems.map((card, index) => {
+    if (typeof card === "string") {
+      return {
+        id: `card-${Date.now()}-${index}`,
+        title: card,
+        body: "",
+        color: "white",
+        image: ""
+      };
+    }
+
+    return {
+      id: card.id || `card-${Date.now()}-${index}`,
+      title: card.title || `Card ${index + 1}`,
+      body: card.body || "",
+      color: ["white", "blue", "red"].includes(card.color) ? card.color : "white",
+      image: card.image || ""
+    };
+  });
+
+  if (![2, 3].includes(Number(section.cardColumns))) {
+    section.cardColumns = 3;
+  }
+
+  return section.cardItems;
 }
 
 function readImageFiles(files, onLoad) {
@@ -801,10 +933,15 @@ function renderInspector() {
   });
   elements.accordionEditor.hidden = section.layout !== "accordion";
   elements.galleryEditor.hidden = section.layout !== "gallery";
+  elements.cardsEditor.hidden = section.layout !== "cards";
+  elements.cardColumnsInputs.forEach((input) => {
+    input.checked = Number(input.value) === Number(section.cardColumns || 3);
+  });
   elements.visibleToggle.checked = section.visible;
   elements.removeSectionBtn.disabled = state.sections.length <= 1;
   renderAccordionEditor(section);
   renderGalleryEditor(section);
+  renderCardsEditor(section);
 }
 
 function renderAccordionEditor(section) {
@@ -886,6 +1023,108 @@ function renderGalleryEditor(section) {
       removeGalleryImage(image.id);
     });
     elements.galleryImageList.append(wrapper);
+  });
+}
+
+function renderCardsEditor(section) {
+  elements.cardItemEditorList.innerHTML = "";
+  if (section.layout !== "cards") return;
+
+  const cards = cardItemsFor(section);
+  cards.forEach((card, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "card-item-editor";
+    wrapper.innerHTML = `
+      <label class="field">
+        <span>Title</span>
+        <input type="text" maxlength="80" data-card-title="${card.id}">
+      </label>
+      <label class="field">
+        <span>Body</span>
+        <textarea rows="3" maxlength="240" data-card-body="${card.id}"></textarea>
+      </label>
+      <label class="field compact">
+        <span>Color</span>
+        <select data-card-color="${card.id}">
+          <option value="white">White</option>
+          <option value="blue">Blue</option>
+          <option value="red">Red</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Image</span>
+        <input type="file" accept="image/*" data-card-image="${card.id}">
+        <small>${card.image ? "Image selected" : "No image selected"}</small>
+      </label>
+      ${card.image ? `<div class="gallery-image-editor"><img src="${escapeHtml(card.image)}" alt=""><div><p class="gallery-empty">Current image</p></div></div>` : ""}
+      <button class="small-danger-button" type="button" data-remove-card-item="${card.id}">Remove card</button>
+    `;
+
+    wrapper.querySelector(`[data-card-title="${card.id}"]`).value = card.title || `Card ${index + 1}`;
+    wrapper.querySelector(`[data-card-body="${card.id}"]`).value = card.body || "";
+    wrapper.querySelector(`[data-card-color="${card.id}"]`).value = card.color || "white";
+
+    wrapper.querySelector(`[data-card-title="${card.id}"]`).addEventListener("input", (event) => {
+      updateCardItem(card.id, "title", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-card-body="${card.id}"]`).addEventListener("input", (event) => {
+      updateCardItem(card.id, "body", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-card-color="${card.id}"]`).addEventListener("change", (event) => {
+      updateCardItem(card.id, "color", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-card-image="${card.id}"]`).addEventListener("change", (event) => {
+      updateCardImage(card.id, event.target.files, event.target);
+    });
+
+    wrapper.querySelector(`[data-remove-card-item="${card.id}"]`).addEventListener("click", () => {
+      removeCardItem(card.id);
+    });
+
+    elements.cardItemEditorList.append(wrapper);
+  });
+}
+
+function updateCardItem(cardId, key, value) {
+  updateSelectedSection((section) => {
+    const card = cardItemsFor(section).find((candidate) => candidate.id === cardId);
+    if (card) card[key] = value;
+  });
+}
+
+function updateCardImage(cardId, files, input) {
+  const [file] = files;
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    showStatus("Choose an image");
+    input.value = "";
+    return;
+  }
+
+  const selectedId = state.selectedId;
+  const previousState = structuredClone(state);
+  readImageFile(file, (imageData) => {
+    undoStack.push(previousState);
+    redoStack = [];
+    const section = state.sections.find((item) => item.id === selectedId);
+    if (section) {
+      const card = cardItemsFor(section).find((candidate) => candidate.id === cardId);
+      if (card) card.image = imageData;
+      state.selectedId = selectedId;
+    }
+    input.value = "";
+    persist();
+    render();
+  });
+}
+
+function removeCardItem(cardId) {
+  updateSelectedSection((section) => {
+    section.cardItems = cardItemsFor(section).filter((card) => card.id !== cardId);
   });
 }
 
@@ -1080,6 +1319,39 @@ function buildSectionHtml(section) {
     `;
   }
 
+  if (section.layout === "cards") {
+    const cards = cardItemsFor(section);
+    const columns = Number(section.cardColumns) === 2 ? 2 : 3;
+
+    return `
+      <section class="site-section cards">
+        <div class="site-copy">
+          <h3>${heading}</h3>
+          <p>${body}</p>
+        </div>
+        <div class="card-grid columns-${columns}">
+          ${cards
+            .map((card, index) => {
+              const title = escapeHtml(card.title || `Card ${index + 1}`);
+              const cardBody = escapeHtml(card.body || "");
+              const color = ["white", "blue", "red"].includes(card.color) ? card.color : "white";
+              const cardImage = card.image ? escapeHtml(card.image) : "";
+              return `
+                <article class="content-card ${color}">
+                  ${cardImage ? `<img class="content-card-image" src="${cardImage}" alt="${title}">` : ""}
+                  <div class="content-card-copy">
+                    <h4>${title}</h4>
+                    <p>${cardBody}</p>
+                  </div>
+                </article>
+              `;
+            })
+            .join("")}
+        </div>
+      </section>
+    `;
+  }
+
   if (section.layout === "text") {
     return `
       <section class="site-section text">
@@ -1206,7 +1478,7 @@ function buildExportDocument() {
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700;800&family=Inter:wght@400;700;800;900&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     body { margin: 0; color: ${palette.ink}; background: ${palette.paper}; font-family: ${activeSecondaryFontStack()}; }
-    h2, h3, summary, strong, .site-logo, .site-cta { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
+    h2, h3, h4, summary, strong, .site-logo, .site-cta { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
     a[href^="http"]::after { content: "↗"; display: inline-block; margin-left: .35em; color: currentColor; font-family: ${activeFontStack()}; font-size: .8em; font-weight: 900; line-height: 1; text-decoration: none; }
     .site-nav, .site-section, .site-footer { padding-left: clamp(20px, 5vw, 70px); padding-right: clamp(20px, 5vw, 70px); }
     .site-nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: ${palette.paper}; border-bottom: 1px solid rgba(0,0,0,.12); }
@@ -1243,6 +1515,17 @@ function buildExportDocument() {
     .site-section.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .site-section.accordion { display: grid; grid-template-columns: 1fr; gap: clamp(22px, 5vw, 70px); align-items: start; background: color-mix(in srgb, ${palette.paper} 88%, #ffffff); }
     .site-section.gallery { display: grid; gap: 22px; background: color-mix(in srgb, ${palette.paper} 88%, #ffffff); }
+    .site-section.cards { display: grid; gap: 24px; background: color-mix(in srgb, ${palette.paper} 90%, #ffffff); }
+    .card-grid { display: grid; gap: 16px; }
+    .card-grid.columns-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card-grid.columns-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .content-card { min-width: 0; overflow: hidden; display: grid; align-content: start; border: 1px solid rgba(0,0,0,.14); border-radius: ${state.radius}px; background: #ffffff; color: ${palette.ink}; }
+    .content-card.blue { border-color: color-mix(in srgb, ${palette.ink} 70%, transparent); background: ${palette.ink}; color: #ffffff; }
+    .content-card.red { border-color: ${palette.accent}; background: ${palette.accent}; color: #ffffff; }
+    .content-card-image { width: 100%; aspect-ratio: 16 / 10; display: block; object-fit: cover; object-position: center; }
+    .content-card-copy { display: grid; gap: 9px; padding: clamp(16px, 3vw, 22px); }
+    .content-card h4 { margin: 0; font-family: ${activeFontStack()}; font-size: 22px; line-height: 1.12; overflow-wrap: anywhere; }
+    .content-card p { color: color-mix(in srgb, currentColor 78%, transparent); }
     .site-section.video { display: grid; gap: 22px; background: color-mix(in srgb, ${palette.paper} 94%, #ffffff); }
     .video-panel { display: grid; gap: 10px; width: 100%; }
     .video-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
@@ -1289,7 +1572,7 @@ function buildExportDocument() {
     .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: flex-start; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
     .footer-legal { max-width: 860px; }
     .back-to-top { white-space: normal; }
-    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .resources-panel { left: 0; right: auto; width: min(300px, 76vw); } .resources-list { grid-template-columns: 1fr; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
+    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .card-grid.columns-2, .card-grid.columns-3 { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .resources-panel { left: 0; right: auto; width: min(300px, 76vw); } .resources-list { grid-template-columns: 1fr; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
   </style>
 </head>
 <body>
@@ -1449,6 +1732,8 @@ function bindInputs() {
         accordionItemsFor(section);
       } else if (section.layout === "gallery") {
         galleryImagesFor(section);
+      } else if (section.layout === "cards") {
+        cardItemsFor(section);
       } else if (section.layout === "video" && !section.videoUrl) {
         section.videoUrl = DEFAULT_VIDEO_URL;
       }
@@ -1467,6 +1752,27 @@ function bindInputs() {
         id: `accordion-${Date.now()}`,
         title: "New accordion item",
         body: "Add supporting detail for this item."
+      });
+    });
+  });
+
+  elements.cardColumnsInputs.forEach((input) => {
+    input.addEventListener("change", (event) => {
+      updateSelectedSection((section) => {
+        section.cardColumns = Number(event.target.value);
+      });
+    });
+  });
+
+  elements.addCardItemBtn.addEventListener("click", () => {
+    updateSelectedSection((section) => {
+      section.layout = "cards";
+      cardItemsFor(section).push({
+        id: `card-${Date.now()}`,
+        title: "New card",
+        body: "Add supporting copy for this card.",
+        color: "white",
+        image: ""
       });
     });
   });

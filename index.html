@@ -121,6 +121,7 @@
                 <option value="image">Image</option>
                 <option value="accordion">Accordion</option>
                 <option value="gallery">Gallery</option>
+                <option value="cards">Cards</option>
                 <option value="video">Video</option>
               </select>
             </label>
@@ -188,6 +189,27 @@
                 <small>Select one or more images for this gallery.</small>
               </label>
               <div class="gallery-image-list" id="galleryImageList"></div>
+            </div>
+            <div class="cards-editor" id="cardsEditor" hidden>
+              <div class="section-heading row">
+                <div>
+                  <p class="eyebrow">Cards</p>
+                  <h2>Items</h2>
+                </div>
+                <button class="icon-button" id="addCardItemBtn" type="button" title="Add card" aria-label="Add card">+</button>
+              </div>
+              <fieldset class="radio-field" id="cardColumnsField">
+                <legend>Cards across</legend>
+                <label>
+                  <input type="radio" name="cardColumns" value="2" />
+                  <span>2</span>
+                </label>
+                <label>
+                  <input type="radio" name="cardColumns" value="3" />
+                  <span>3</span>
+                </label>
+              </fieldset>
+              <div class="card-item-editor-list" id="cardItemEditorList"></div>
             </div>
             <label class="toggle-row">
               <span>Visible</span>

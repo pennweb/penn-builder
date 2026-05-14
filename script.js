@@ -103,6 +103,36 @@ const OLD_DEFAULT_VIDEO_URLS = ["https://vimeo.com/416160065"];
 const DEFAULT_VIDEO_URL = "https://vimeo.com/1084537";
 const DEFAULT_BUTTON_URL = "https://www.upenn.edu";
 const PREVIEW_ID = "upenn-preview-2026-05-09-penn-buildings";
+const DEFAULT_GROUPS = [
+  {
+    id: "overview",
+    label: "Overview",
+    navTitle: "Overview",
+    visibleInNav: true,
+    parallaxImage: PENN_COLLEGE_HALL_IMAGE
+  },
+  {
+    id: "academics",
+    label: "Academics",
+    navTitle: "Academics",
+    visibleInNav: true,
+    parallaxImage: PENN_FISHER_FINE_ARTS_IMAGE
+  },
+  {
+    id: "campus-life",
+    label: "Campus Life",
+    navTitle: "Campus Life",
+    visibleInNav: true,
+    parallaxImage: PENN_STUDENT_HOLI_IMAGE
+  },
+  {
+    id: "happening-now",
+    label: "Happening Now",
+    navTitle: "Happening Now",
+    visibleInNav: true,
+    parallaxImage: PENN_RESEARCH_LAB_IMAGE
+  }
+];
 const PENN_RESOURCE_LINKS = [
   { label: "Current Students", href: "https://path.at.upenn.edu/" },
   { label: "Faculty & Staff", href: "https://portal.apps.upenn.edu/" },
@@ -128,10 +158,12 @@ const starterState = {
   secondaryFont: "EB Garamond",
   radius: 6,
   externalLinkIcons: true,
+  groups: structuredClone(DEFAULT_GROUPS),
   selectedId: "hero",
   sections: [
     {
       id: "hero",
+      groupId: "overview",
       layout: "hero",
       label: "Hero",
       heading: "Penn",
@@ -144,6 +176,7 @@ const starterState = {
     },
     {
       id: "principle",
+      groupId: "overview",
       layout: "text",
       label: "Text",
       heading: "In principle and practice",
@@ -152,6 +185,7 @@ const starterState = {
     },
     {
       id: "academics",
+      groupId: "academics",
       layout: "split",
       label: "Split",
       heading: "Academics across a connected university.",
@@ -163,6 +197,7 @@ const starterState = {
     },
     {
       id: "facts",
+      groupId: "academics",
       layout: "stats",
       label: "Facts",
       heading: "Penn Facts",
@@ -171,6 +206,7 @@ const starterState = {
     },
     {
       id: "research",
+      groupId: "academics",
       layout: "feature",
       label: "Fullbleed",
       heading: "Research and innovation with public purpose.",
@@ -181,6 +217,7 @@ const starterState = {
     },
     {
       id: "campus-life",
+      groupId: "campus-life",
       layout: "accordion",
       label: "Accordion",
       heading: "Campus life overview",
@@ -211,6 +248,7 @@ const starterState = {
     },
     {
       id: "gallery",
+      groupId: "campus-life",
       layout: "gallery",
       label: "Gallery",
       heading: "Scenes from Penn",
@@ -223,6 +261,7 @@ const starterState = {
     },
     {
       id: "philadelphia",
+      groupId: "campus-life",
       layout: "image",
       label: "Image",
       heading: "Penn and Philadelphia",
@@ -232,6 +271,7 @@ const starterState = {
     },
     {
       id: "cards",
+      groupId: "campus-life",
       layout: "cards",
       label: "Cards",
       heading: "Explore Penn",
@@ -264,6 +304,7 @@ const starterState = {
     },
     {
       id: "events",
+      groupId: "happening-now",
       layout: "events",
       label: "Events",
       heading: "Events",
@@ -301,6 +342,7 @@ const starterState = {
     },
     {
       id: "video",
+      groupId: "happening-now",
       layout: "video",
       label: "Video",
       heading: "A quick comic intermission.",
@@ -310,6 +352,7 @@ const starterState = {
     },
     {
       id: "quote",
+      groupId: "happening-now",
       layout: "quote",
       label: "Quote",
       heading: "Benjamin Franklin",
@@ -336,6 +379,7 @@ const elements = {
   radiusControl: document.querySelector("#radiusControl"),
   paletteChoices: document.querySelector("#paletteChoices"),
   sectionList: document.querySelector("#sectionList"),
+  groupEditorList: document.querySelector("#groupEditorList"),
   sectionHeadingLabel: document.querySelector("#sectionHeadingLabel"),
   sectionHeading: document.querySelector("#sectionHeading"),
   sectionBodyField: document.querySelector("#sectionBodyField"),
@@ -343,6 +387,7 @@ const elements = {
   sectionBody: document.querySelector("#sectionBody"),
   layoutChoice: document.querySelector("#layoutChoice"),
   sectionLabel: document.querySelector("#sectionLabel"),
+  sectionGroup: document.querySelector("#sectionGroup"),
   buttonTextField: document.querySelector("#buttonTextField"),
   buttonText: document.querySelector("#buttonText"),
   buttonUrlField: document.querySelector("#buttonUrlField"),
@@ -387,9 +432,78 @@ const elements = {
   saveBtn: document.querySelector("#saveBtn"),
   exportBtn: document.querySelector("#exportBtn"),
   downloadBtn: document.querySelector("#downloadBtn"),
+  addGroupBtn: document.querySelector("#addGroupBtn"),
   addSectionBtn: document.querySelector("#addSectionBtn"),
   removeSectionBtn: document.querySelector("#removeSectionBtn")
 };
+
+function slugify(value, fallback = "group") {
+  return String(value || fallback)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || fallback;
+}
+
+function defaultGroupIdForSection(section) {
+  if (!section) return DEFAULT_GROUPS[0].id;
+  if (section.id === "hero" || section.id === "principle" || section.layout === "hero") return "overview";
+  if (["academics", "facts", "research"].includes(section.id) || section.layout === "stats") return "academics";
+  if (["campus-life", "gallery", "philadelphia", "cards"].includes(section.id) || ["accordion", "gallery", "image", "cards"].includes(section.layout)) {
+    return "campus-life";
+  }
+  if (["events", "video", "quote"].includes(section.id) || ["events", "video", "quote"].includes(section.layout)) return "happening-now";
+  return DEFAULT_GROUPS[0].id;
+}
+
+function uniqueGroupId(label, existingIds = []) {
+  const base = slugify(label || "group");
+  let candidate = base;
+  let index = 2;
+  while (existingIds.includes(candidate)) {
+    candidate = `${base}-${index}`;
+    index += 1;
+  }
+  return candidate;
+}
+
+function ensureGroups(targetState) {
+  if (!targetState.groups || !Array.isArray(targetState.groups) || !targetState.groups.length) {
+    targetState.groups = structuredClone(DEFAULT_GROUPS);
+  }
+
+  const existingIds = new Set();
+  targetState.groups = targetState.groups.map((group, index) => {
+    const defaultGroup = DEFAULT_GROUPS[index] || DEFAULT_GROUPS[0];
+    const label = group.label || defaultGroup.label || `Group ${index + 1}`;
+    const id = group.id && !existingIds.has(group.id) ? group.id : uniqueGroupId(label, Array.from(existingIds));
+    existingIds.add(id);
+
+    return {
+      id,
+      label,
+      navTitle: group.navTitle || label,
+      visibleInNav: group.visibleInNav !== false,
+      parallaxImage: group.parallaxImage || defaultGroup.parallaxImage || ""
+    };
+  });
+
+  if (!targetState.sections) return;
+
+  const validIds = new Set(targetState.groups.map((group) => group.id));
+  targetState.sections.forEach((section) => {
+    if (!validIds.has(section.groupId)) {
+      section.groupId = defaultGroupIdForSection(section);
+    }
+    if (!validIds.has(section.groupId)) {
+      section.groupId = targetState.groups[0].id;
+    }
+  });
+}
+
+function groupById(groupId) {
+  ensureGroups(state);
+  return state.groups.find((group) => group.id === groupId) || state.groups[0];
+}
 
 function loadState() {
   const stored = localStorage.getItem("website-builder-state");
@@ -415,6 +529,7 @@ function loadState() {
         ? storedState.footerExternalIcons
         : true;
     }
+    ensureGroups(loadedState);
     if (!Object.prototype.hasOwnProperty.call(storedState, "typographyDefaultsUpdated")) {
       if (loadedState.font === "EB Garamond" && loadedState.secondaryFont === "Roboto") {
         loadedState.font = "Roboto";
@@ -448,6 +563,7 @@ function loadState() {
     ensureCardsSection(loadedState);
     ensureEventsSection(loadedState);
     ensureVideoSection(loadedState);
+    ensureGroups(loadedState);
     return loadedState;
   } catch {
     return structuredClone(starterState);
@@ -457,6 +573,7 @@ function loadState() {
 function defaultVideoSection() {
   return {
     id: "video",
+    groupId: "happening-now",
     layout: "video",
     label: "Video",
     heading: "A quick comic intermission.",
@@ -469,6 +586,7 @@ function defaultVideoSection() {
 function defaultCardsSection() {
   return {
     id: "cards",
+    groupId: "campus-life",
     layout: "cards",
     label: "Cards",
     heading: "Explore Penn",
@@ -482,6 +600,7 @@ function defaultCardsSection() {
 function defaultEventsSection() {
   return {
     id: "events",
+    groupId: "happening-now",
     layout: "events",
     label: "Events",
     heading: "Events",
@@ -1205,38 +1324,118 @@ function renderPaletteChoices() {
   });
 }
 
+function sectionsForGroup(groupId, includeHidden = true) {
+  return state.sections.filter((section) => section.groupId === groupId && (includeHidden || section.visible));
+}
+
+function renderGroupEditors() {
+  ensureGroups(state);
+  elements.groupEditorList.innerHTML = "";
+
+  state.groups.forEach((group, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "group-editor";
+    wrapper.innerHTML = `
+      <label class="field">
+        <span>Group label</span>
+        <input type="text" maxlength="42" data-group-label="${group.id}">
+      </label>
+      <label class="field">
+        <span>Navigation label</span>
+        <input type="text" maxlength="42" data-group-nav="${group.id}">
+      </label>
+      <label class="toggle-row">
+        <span>Show in navigation</span>
+        <input type="checkbox" data-group-visible="${group.id}">
+      </label>
+      <label class="field image-upload-field">
+        <span>Parallax image</span>
+        <input type="file" accept="image/*" data-group-image="${group.id}">
+        <small>${group.parallaxImage ? "Image selected" : "No parallax image"}</small>
+      </label>
+      ${
+        group.parallaxImage
+          ? `<div class="gallery-image-editor"><img src="${escapeHtml(group.parallaxImage)}" alt=""><div><p class="gallery-empty">Current parallax image</p><button class="small-danger-button" type="button" data-remove-group-image="${group.id}">Remove image</button></div></div>`
+          : ""
+      }
+      <button class="small-danger-button" type="button" data-remove-group="${group.id}" ${state.groups.length <= 1 ? "disabled" : ""}>Remove group</button>
+    `;
+
+    wrapper.querySelector(`[data-group-label="${group.id}"]`).value = group.label || `Group ${index + 1}`;
+    wrapper.querySelector(`[data-group-nav="${group.id}"]`).value = group.navTitle || group.label || `Group ${index + 1}`;
+    wrapper.querySelector(`[data-group-visible="${group.id}"]`).checked = group.visibleInNav !== false;
+
+    wrapper.querySelector(`[data-group-label="${group.id}"]`).addEventListener("change", (event) => {
+      updateGroup(group.id, "label", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-group-nav="${group.id}"]`).addEventListener("change", (event) => {
+      updateGroup(group.id, "navTitle", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-group-visible="${group.id}"]`).addEventListener("change", (event) => {
+      updateGroup(group.id, "visibleInNav", event.target.checked);
+    });
+
+    wrapper.querySelector(`[data-group-image="${group.id}"]`).addEventListener("change", (event) => {
+      updateGroupImage(group.id, event.target.files, event.target);
+    });
+
+    const removeImageButton = wrapper.querySelector(`[data-remove-group-image="${group.id}"]`);
+    if (removeImageButton) {
+      removeImageButton.addEventListener("click", () => {
+        updateGroup(group.id, "parallaxImage", "");
+      });
+    }
+
+    wrapper.querySelector(`[data-remove-group="${group.id}"]`).addEventListener("click", () => {
+      removeGroup(group.id);
+    });
+
+    elements.groupEditorList.append(wrapper);
+  });
+}
+
 function renderSectionList() {
   const template = document.querySelector("#sectionItemTemplate");
   elements.sectionList.innerHTML = "";
 
-  state.sections.forEach((section) => {
-    const item = template.content.firstElementChild.cloneNode(true);
-    item.dataset.sectionId = section.id;
-    item.classList.toggle("active", section.id === state.selectedId);
-    item.querySelector(".section-item-title").textContent = sectionLabel(section);
-    item.querySelector(".section-item-kind").textContent = `${layoutLabels[section.layout] || section.layout}${section.visible ? "" : " hidden"}`;
-    item.addEventListener("click", (event) => {
-      if (suppressNextSectionClick) {
-        event.preventDefault();
-        suppressNextSectionClick = false;
-        return;
-      }
-      state.selectedId = section.id;
-      persist();
-      render();
+  ensureGroups(state);
+  state.groups.forEach((group) => {
+    const divider = document.createElement("div");
+    divider.className = "section-group-divider";
+    divider.textContent = group.label || "Group";
+    elements.sectionList.append(divider);
+
+    sectionsForGroup(group.id).forEach((section) => {
+      const item = template.content.firstElementChild.cloneNode(true);
+      item.dataset.sectionId = section.id;
+      item.classList.toggle("active", section.id === state.selectedId);
+      item.querySelector(".section-item-title").textContent = sectionLabel(section);
+      item.querySelector(".section-item-kind").textContent = `${layoutLabels[section.layout] || section.layout}${section.visible ? "" : " hidden"}`;
+      item.addEventListener("click", (event) => {
+        if (suppressNextSectionClick) {
+          event.preventDefault();
+          suppressNextSectionClick = false;
+          return;
+        }
+        state.selectedId = section.id;
+        persist();
+        render();
+      });
+      item.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        pointerDrag = {
+          active: false,
+          dropAfter: false,
+          sourceId: section.id,
+          startX: event.clientX,
+          startY: event.clientY,
+          targetId: null
+        };
+      });
+      elements.sectionList.append(item);
     });
-    item.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
-      pointerDrag = {
-        active: false,
-        dropAfter: false,
-        sourceId: section.id,
-        startX: event.clientX,
-        startY: event.clientY,
-        targetId: null
-      };
-    });
-    elements.sectionList.append(item);
   });
 }
 
@@ -1301,6 +1500,10 @@ function renderInspector() {
   elements.sectionBodyLabel.textContent = section.layout === "quote" ? "Quote" : "Body";
   elements.sectionBody.value = section.body;
   elements.layoutChoice.value = section.layout;
+  elements.sectionGroup.innerHTML = state.groups
+    .map((group) => `<option value="${escapeHtml(group.id)}">${escapeHtml(group.label || group.navTitle || group.id)}</option>`)
+    .join("");
+  elements.sectionGroup.value = groupById(section.groupId).id;
   elements.sectionBodyField.hidden = section.layout === "accordion";
   elements.buttonTextField.hidden = !layoutHasButton(section.layout);
   elements.buttonText.value = buttonTextFor(section);
@@ -1702,6 +1905,50 @@ function removeGalleryImage(imageId) {
   });
 }
 
+function updateGroup(groupId, key, value) {
+  recordChange(() => {
+    const group = state.groups.find((candidate) => candidate.id === groupId);
+    if (group) group[key] = value;
+  });
+}
+
+function updateGroupImage(groupId, files, input) {
+  const [file] = files;
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    showStatus("Choose an image");
+    input.value = "";
+    return;
+  }
+
+  const previousState = structuredClone(state);
+  readImageFile(file, (imageData) => {
+    undoStack.push(previousState);
+    redoStack = [];
+    const group = state.groups.find((candidate) => candidate.id === groupId);
+    if (group) group.parallaxImage = imageData;
+    input.value = "";
+    persist();
+    render();
+  });
+}
+
+function removeGroup(groupId) {
+  if (state.groups.length <= 1) return;
+
+  recordChange(() => {
+    const removedIndex = state.groups.findIndex((group) => group.id === groupId);
+    if (removedIndex === -1) return;
+
+    const fallbackGroup = state.groups[removedIndex === 0 ? 1 : removedIndex - 1];
+    state.sections.forEach((section) => {
+      if (section.groupId === groupId) section.groupId = fallbackGroup.id;
+    });
+    state.groups.splice(removedIndex, 1);
+  });
+}
+
 function renderControls() {
   elements.siteTitle.value = state.siteTitle;
   elements.tagline.value = state.tagline;
@@ -1725,7 +1972,17 @@ function renderPreview() {
   elements.sitePreview.style.borderRadius = `${Math.min(Number(state.radius), 12)}px`;
   elements.sitePreview.classList.toggle("hide-external-icons", state.externalLinkIcons === false);
   elements.sitePreview.innerHTML = buildSiteHtml(false);
+  updateParallax();
   elements.exportCode.value = buildExportDocument();
+}
+
+function updateParallax(root = document) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  root.querySelectorAll(".site-group.has-parallax").forEach((group) => {
+    const rect = group.getBoundingClientRect();
+    group.style.setProperty("--parallax-offset", `${Math.round(rect.top * -0.12)}px`);
+  });
 }
 
 function handleVideoAction(button) {
@@ -2011,18 +2268,53 @@ function buildSectionHtml(section) {
 }
 
 function buildSiteHtml(includeHidden) {
-  const visibleSections = state.sections.filter((section) => includeHidden || section.visible);
-
   return `
     <nav class="site-nav" id="top">
       <div class="site-logo">
         <img src="${PENN_LOGO_IMAGE}" alt="Penn">
       </div>
-      ${buildResourcesMenuHtml()}
+      <div class="site-nav-links" aria-label="Section navigation">
+        ${buildGroupNavHtml(includeHidden)}
+      </div>
+      <div class="site-nav-actions">
+        ${buildResourcesMenuHtml()}
+      </div>
     </nav>
-    ${visibleSections.map(buildSectionHtml).join("")}
+    ${buildGroupedSectionsHtml(includeHidden)}
     ${buildFooterHtml()}
   `;
+}
+
+function buildGroupNavHtml(includeHidden) {
+  ensureGroups(state);
+  return state.groups
+    .filter((group) => group.visibleInNav !== false && sectionsForGroup(group.id, includeHidden).length)
+    .map((group) => {
+      const navTitle = escapeHtml(group.navTitle || group.label || group.id);
+      return `<a href="#${escapeHtml(group.id)}">${navTitle}</a>`;
+    })
+    .join("");
+}
+
+function buildGroupedSectionsHtml(includeHidden) {
+  ensureGroups(state);
+  return state.groups
+    .map((group) => {
+      const sections = sectionsForGroup(group.id, includeHidden);
+      if (!sections.length) return "";
+
+      const groupImage = group.parallaxImage ? escapeHtml(group.parallaxImage) : "";
+      const groupClass = groupImage ? " has-parallax" : "";
+      return `
+        <section class="site-group${groupClass}" id="${escapeHtml(group.id)}" data-parallax-group>
+          ${groupImage ? `<img class="site-group-backdrop" src="${groupImage}" alt="" aria-hidden="true">` : ""}
+          <div class="site-group-content">
+            ${sections.map(buildSectionHtml).join("")}
+          </div>
+        </section>
+      `;
+    })
+    .join("");
 }
 
 function buildResourcesMenuHtml() {
@@ -2102,14 +2394,22 @@ function buildExportDocument() {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700;800&family=Inter:wght@400;700;800;900&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
+    html { scroll-behavior: smooth; }
     body { margin: 0; color: ${palette.ink}; background: ${palette.paper}; font-family: ${activeSecondaryFontStack()}; }
     h2, h3, h4, summary, strong, .site-logo, .site-cta { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
     a[href^="http"]::after { content: "↗"; display: inline-block; margin-left: .35em; color: currentColor; font-family: ${activeFontStack()}; font-size: .8em; font-weight: 900; line-height: 1; text-decoration: none; }
     body.hide-external-icons a[href^="http"]::after { content: none; }
     .site-nav, .site-section, .site-footer { padding-left: clamp(20px, 5vw, 70px); padding-right: clamp(20px, 5vw, 70px); }
     .site-nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: ${palette.paper}; border-bottom: 1px solid rgba(0,0,0,.12); }
+    .site-nav-links, .site-nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .site-nav-links a { color: ${palette.ink}; font-family: ${activeFontStack()}; font-size: 12px; font-weight: 900; text-decoration: none; text-transform: uppercase; }
+    .site-nav-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
     .site-logo { display: block; width: min(220px, 42vw); font-family: ${activeFontStack()}; font-weight: 900; font-size: 19px; }
     .site-logo img { display: block; width: 100%; height: auto; }
+    .site-group { position: relative; isolation: isolate; overflow: hidden; scroll-margin-top: 76px; }
+    .site-group.has-parallax { background: color-mix(in srgb, ${palette.paper} 84%, #ffffff); }
+    .site-group-backdrop { position: absolute; inset: -12% 0; z-index: 0; width: 100%; height: 124%; object-fit: cover; opacity: .16; transform: translateY(var(--parallax-offset, 0)); will-change: transform; pointer-events: none; }
+    .site-group-content { position: relative; z-index: 1; }
     .resources-menu { position: relative; font-family: ${activeFontStack()}; color: ${palette.ink}; z-index: 5; }
     .resources-menu summary { min-height: 38px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(0,0,0,.16); border-radius: 999px; padding: 0 13px; list-style: none; cursor: pointer; font-size: 12px; font-weight: 900; text-transform: uppercase; }
     .resources-menu summary::-webkit-details-marker { display: none; }
@@ -2228,7 +2528,7 @@ function buildExportDocument() {
     .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: flex-start; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
     .footer-legal { max-width: 860px; }
     .back-to-top { white-space: normal; }
-    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .card-grid.columns-2, .card-grid.columns-3 { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .resources-panel { left: 0; right: auto; width: min(300px, 76vw); } .resources-list { grid-template-columns: 1fr; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
+    @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .card-grid.columns-2, .card-grid.columns-3 { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .site-nav-links, .site-nav-actions { justify-content: flex-start; } .resources-panel { left: 0; right: auto; width: min(300px, 76vw); } .resources-list { grid-template-columns: 1fr; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
   </style>
 </head>
 <body${state.externalLinkIcons === false ? ' class="hide-external-icons"' : ""}>
@@ -2251,6 +2551,18 @@ ${buildSiteHtml(false)}
       }
     }
   }
+
+  function updateParallax() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    document.querySelectorAll(".site-group.has-parallax").forEach((group) => {
+      const rect = group.getBoundingClientRect();
+      group.style.setProperty("--parallax-offset", Math.round(rect.top * -0.12) + "px");
+    });
+  }
+
+  window.addEventListener("scroll", updateParallax, { passive: true });
+  window.addEventListener("resize", updateParallax, { passive: true });
+  updateParallax();
 
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-accordion-action]");
@@ -2286,6 +2598,7 @@ ${buildSiteHtml(false)}
 function render() {
   renderControls();
   renderPaletteChoices();
+  renderGroupEditors();
   renderSectionList();
   renderInspector();
   renderPreview();
@@ -2299,6 +2612,9 @@ function updateSelectedSection(updater) {
 }
 
 function bindInputs() {
+  window.addEventListener("scroll", () => updateParallax(), { passive: true });
+  window.addEventListener("resize", () => updateParallax(), { passive: true });
+
   window.addEventListener("pointermove", (event) => {
     if (!pointerDrag) return;
 
@@ -2378,6 +2694,12 @@ function bindInputs() {
   elements.sectionBody.addEventListener("input", (event) => {
     updateSelectedSection((section) => {
       section.body = event.target.value;
+    });
+  });
+
+  elements.sectionGroup.addEventListener("change", (event) => {
+    updateSelectedSection((section) => {
+      section.groupId = event.target.value;
     });
   });
 
@@ -2633,6 +2955,7 @@ function bindInputs() {
       const id = `section-${Date.now()}`;
       state.sections.push({
         id,
+        groupId: state.groups[0].id,
         layout: "feature",
         label: "Fullbleed",
         heading: "A focused new section.",
@@ -2641,6 +2964,19 @@ function bindInputs() {
         visible: true
       });
       state.selectedId = id;
+    });
+  });
+
+  elements.addGroupBtn.addEventListener("click", () => {
+    recordChange(() => {
+      const id = uniqueGroupId("New Group", state.groups.map((group) => group.id));
+      state.groups.push({
+        id,
+        label: "New Group",
+        navTitle: "New Group",
+        visibleInNav: true,
+        parallaxImage: ""
+      });
     });
   });
 

@@ -770,10 +770,42 @@ button:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
-  background: color-mix(in srgb, var(--site-paper, #faf8f0) 82%, #ffffff);
+  background: var(--site-ink, #221f1a);
+  color: #ffffff;
+}
+
+.site-section.split.white {
+  background: #ffffff;
+  color: var(--site-ink, #221f1a);
+}
+
+.site-section.split.blue {
+  background: var(--site-ink, #221f1a);
+  color: #ffffff;
+}
+
+.site-section.split.red {
+  background: var(--site-accent, #176c66);
+  color: #ffffff;
+}
+
+.site-section.split.blue .site-copy p,
+.site-section.split.red .site-copy p {
+  color: color-mix(in srgb, currentColor 78%, transparent);
+}
+
+.site-section.split.blue .site-cta,
+.site-section.split.red .site-cta {
+  background: #ffffff;
+  color: var(--site-ink, #221f1a);
 }
 
 .site-section.quote {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: clamp(12px, 2.5vw, 24px);
+  align-content: start;
+  align-items: start;
   background: var(--site-accent, #176c66);
   color: #ffffff;
 }
@@ -791,6 +823,26 @@ button:focus-visible {
 .site-section.quote.red {
   background: var(--site-accent, #176c66);
   color: #ffffff;
+}
+
+.quote-mark {
+  width: clamp(48px, 7vw, 72px);
+  height: 58px;
+  color: currentColor;
+  font-family: var(--site-heading-font, Inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(86px, 12vw, 128px);
+  font-weight: 900;
+  line-height: 0.8;
+  opacity: 0.92;
+}
+
+.site-section.quote .site-copy {
+  min-width: 0;
+  padding-top: 12px;
+}
+
+.site-section.quote.white .quote-mark {
+  color: var(--site-ink, #221f1a);
 }
 
 .site-section.stats {
@@ -1231,7 +1283,13 @@ button:focus-visible {
 }
 
 .site-section.quote h3 {
-  max-width: 15ch;
+  max-width: 34ch;
+}
+
+.site-section.quote p {
+  color: currentColor;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .site-copy {

@@ -154,6 +154,7 @@ const starterState = {
       heading: "Academics across a connected university.",
       body: "Four undergraduate schools and 12 graduate and professional schools create a distinctive ecosystem for learning across liberal arts, business, engineering, design, law, medicine, education, policy, and more.",
       buttonText: "View academics",
+      splitColor: "blue",
       visible: true
     },
     {
@@ -306,8 +307,8 @@ const starterState = {
       id: "quote",
       layout: "quote",
       label: "Quote",
-      heading: "Creating knowledge to benefit the world.",
-      body: "A Penn-inspired close for the preview: ambitious, civic-minded, research-driven, and grounded in a historic campus community.",
+      heading: "Benjamin Franklin",
+      body: "Well done is better than well said",
       quoteColor: "red",
       visible: true
     }
@@ -329,8 +330,10 @@ const elements = {
   radiusControl: document.querySelector("#radiusControl"),
   paletteChoices: document.querySelector("#paletteChoices"),
   sectionList: document.querySelector("#sectionList"),
+  sectionHeadingLabel: document.querySelector("#sectionHeadingLabel"),
   sectionHeading: document.querySelector("#sectionHeading"),
   sectionBodyField: document.querySelector("#sectionBodyField"),
+  sectionBodyLabel: document.querySelector("#sectionBodyLabel"),
   sectionBody: document.querySelector("#sectionBody"),
   layoutChoice: document.querySelector("#layoutChoice"),
   sectionLabel: document.querySelector("#sectionLabel"),
@@ -350,6 +353,8 @@ const elements = {
   heroImagePositionInputs: document.querySelectorAll('input[name="heroImagePosition"]'),
   quoteColorField: document.querySelector("#quoteColorField"),
   quoteColorInputs: document.querySelectorAll('input[name="quoteColor"]'),
+  splitColorField: document.querySelector("#splitColorField"),
+  splitColorInputs: document.querySelectorAll('input[name="splitColor"]'),
   accordionEditor: document.querySelector("#accordionEditor"),
   accordionItemEditorList: document.querySelector("#accordionItemEditorList"),
   addAccordionItemBtn: document.querySelector("#addAccordionItemBtn"),
@@ -407,6 +412,17 @@ function loadState() {
       loadedState.sections[0].layout = "hero";
       if (loadedState.sections[0].featureImage && !loadedState.sections[0].heroImage) {
         loadedState.sections[0].heroImage = loadedState.sections[0].featureImage;
+      }
+    }
+    if (loadedState.sections) {
+      const defaultQuoteSection = loadedState.sections.find((section) => section.layout === "quote");
+      if (
+        defaultQuoteSection &&
+        defaultQuoteSection.heading === "Creating knowledge to benefit the world." &&
+        defaultQuoteSection.body === "A Penn-inspired close for the preview: ambitious, civic-minded, research-driven, and grounded in a historic campus community."
+      ) {
+        defaultQuoteSection.heading = "Benjamin Franklin";
+        defaultQuoteSection.body = "Well done is better than well said";
       }
     }
     replaceBrokenPreviewImages(loadedState);
@@ -1033,7 +1049,9 @@ function renderInspector() {
   elements.inspectorTitle.textContent = sectionLabel(section);
   elements.sectionLabel.value = section.label || layoutLabels[section.layout] || "";
   elements.sectionLabel.placeholder = layoutLabels[section.layout] || "Section";
+  elements.sectionHeadingLabel.textContent = section.layout === "quote" ? "Author" : "Heading";
   elements.sectionHeading.value = section.heading;
+  elements.sectionBodyLabel.textContent = section.layout === "quote" ? "Quote" : "Body";
   elements.sectionBody.value = section.body;
   elements.layoutChoice.value = section.layout;
   elements.sectionBodyField.hidden = section.layout === "accordion";
@@ -1074,6 +1092,10 @@ function renderInspector() {
   elements.quoteColorField.hidden = section.layout !== "quote";
   elements.quoteColorInputs.forEach((input) => {
     input.checked = input.value === (section.quoteColor || "red");
+  });
+  elements.splitColorField.hidden = section.layout !== "split";
+  elements.splitColorInputs.forEach((input) => {
+    input.checked = input.value === (section.splitColor || "blue");
   });
   elements.accordionEditor.hidden = section.layout !== "accordion";
   elements.galleryEditor.hidden = section.layout !== "gallery";
@@ -1693,16 +1715,20 @@ function buildSectionHtml(section) {
 
     return `
       <section class="site-section quote ${color}">
+        <span class="quote-mark" aria-hidden="true">&ldquo;</span>
         <div class="site-copy">
-          <h3>${heading}</h3>
-          <p>${body}</p>
+          <h3>${body}</h3>
+          <p>${heading}</p>
         </div>
       </section>
     `;
   }
 
+  const splitColor = ["white", "blue", "red"].includes(section.splitColor) ? section.splitColor : "blue";
+  const sectionColor = section.layout === "split" ? ` ${splitColor}` : "";
+
   return `
-    <section class="site-section ${section.layout}">
+    <section class="site-section ${section.layout}${sectionColor}">
       <h3>${heading}</h3>
       <div class="site-copy">
         <p>${body}</p>
@@ -1837,11 +1863,19 @@ function buildExportDocument() {
     .site-section.text { display: block; }
     .site-section.text .site-copy { max-width: none; }
     .site-section.text p { width: 100%; max-width: none; font-size: 18px; }
-    .site-section.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; background: color-mix(in srgb, ${palette.paper} 82%, #ffffff); }
-    .site-section.quote { background: ${palette.accent}; color: #ffffff; }
+    .site-section.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; background: ${palette.ink}; color: #ffffff; }
+    .site-section.split.white { background: #ffffff; color: ${palette.ink}; }
+    .site-section.split.blue { background: ${palette.ink}; color: #ffffff; }
+    .site-section.split.red { background: ${palette.accent}; color: #ffffff; }
+    .site-section.split.blue .site-copy p, .site-section.split.red .site-copy p { color: color-mix(in srgb, currentColor 78%, transparent); }
+    .site-section.split.blue .site-cta, .site-section.split.red .site-cta { background: #ffffff; color: ${palette.ink}; }
+    .site-section.quote { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: clamp(12px, 2.5vw, 24px); align-content: start; align-items: start; background: ${palette.accent}; color: #ffffff; }
     .site-section.quote.white { background: #ffffff; color: ${palette.ink}; }
     .site-section.quote.blue { background: ${palette.ink}; color: #ffffff; }
     .site-section.quote.red { background: ${palette.accent}; color: #ffffff; }
+    .quote-mark { width: clamp(48px, 7vw, 72px); height: 58px; color: currentColor; font-family: ${activeFontStack()}; font-size: clamp(86px, 12vw, 128px); font-weight: 900; line-height: .8; opacity: .92; }
+    .site-section.quote .site-copy { min-width: 0; padding-top: 12px; }
+    .site-section.quote.white .quote-mark { color: ${palette.ink}; }
     .site-section.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .site-section.accordion { display: grid; grid-template-columns: 1fr; gap: clamp(22px, 5vw, 70px); align-items: start; background: color-mix(in srgb, ${palette.paper} 88%, #ffffff); }
     .site-section.gallery { display: grid; gap: 22px; background: color-mix(in srgb, ${palette.paper} 88%, #ffffff); }
@@ -1900,6 +1934,8 @@ function buildExportDocument() {
     .image-caption { position: relative; z-index: 2; max-width: 650px; padding: clamp(26px, 5vw, 62px); color: #ffffff; }
     .image-caption p { color: rgba(255,255,255,.86); }
     .site-section h3 { margin: 0; font-family: ${activeFontStack()}; font-size: 38px; line-height: 1.08; letter-spacing: 0; overflow-wrap: anywhere; text-wrap: balance; }
+    .site-section.quote h3 { max-width: 34ch; }
+    .site-section.quote p { color: currentColor; font-size: 16px; font-weight: 800; }
     .site-copy { display: grid; gap: 14px; }
     .metric { min-height: 124px; display: grid; align-content: center; gap: 7px; border: 1px solid rgba(0,0,0,.14); border-radius: ${state.radius}px; padding: 18px; }
     .metric strong { font-family: ${activeFontStack()}; font-size: 34px; line-height: 1; }
@@ -2081,6 +2117,8 @@ function bindInputs() {
         cardItemsFor(section);
       } else if (section.layout === "events") {
         eventItemsFor(section);
+      } else if (section.layout === "split" && !section.splitColor) {
+        section.splitColor = "blue";
       } else if (section.layout === "quote" && !section.quoteColor) {
         section.quoteColor = "red";
       } else if (section.layout === "video" && !section.videoUrl) {
@@ -2202,6 +2240,14 @@ function bindInputs() {
     input.addEventListener("change", (event) => {
       updateSelectedSection((section) => {
         section.quoteColor = event.target.value;
+      });
+    });
+  });
+
+  elements.splitColorInputs.forEach((input) => {
+    input.addEventListener("change", (event) => {
+      updateSelectedSection((section) => {
+        section.splitColor = event.target.value;
       });
     });
   });

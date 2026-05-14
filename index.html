@@ -131,11 +131,11 @@
               <input id="sectionLabel" type="text" maxlength="42" />
             </label>
             <label class="field">
-              <span>Heading</span>
+              <span id="sectionHeadingLabel">Heading</span>
               <input id="sectionHeading" type="text" maxlength="58" />
             </label>
             <label class="field" id="sectionBodyField">
-              <span>Body</span>
+              <span id="sectionBodyLabel">Body</span>
               <textarea id="sectionBody" rows="6" maxlength="320"></textarea>
             </label>
             <label class="field" id="buttonTextField" hidden>
@@ -181,6 +181,21 @@
               </label>
               <label>
                 <input type="radio" name="quoteColor" value="red" />
+                <span>Red</span>
+              </label>
+            </fieldset>
+            <fieldset class="radio-field" id="splitColorField" hidden>
+              <legend>Split color</legend>
+              <label>
+                <input type="radio" name="splitColor" value="white" />
+                <span>White</span>
+              </label>
+              <label>
+                <input type="radio" name="splitColor" value="blue" />
+                <span>Blue</span>
+              </label>
+              <label>
+                <input type="radio" name="splitColor" value="red" />
                 <span>Red</span>
               </label>
             </fieldset>

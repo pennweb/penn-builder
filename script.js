@@ -126,6 +126,7 @@ const starterState = {
   font: "Roboto",
   secondaryFont: "EB Garamond",
   radius: 6,
+  externalLinkIcons: true,
   selectedId: "hero",
   sections: [
     {
@@ -325,6 +326,7 @@ let suppressNextSectionClick = false;
 const elements = {
   siteTitle: document.querySelector("#siteTitle"),
   tagline: document.querySelector("#tagline"),
+  externalLinkIcons: document.querySelector("#externalLinkIcons"),
   fontChoice: document.querySelector("#fontChoice"),
   secondaryFontChoice: document.querySelector("#secondaryFontChoice"),
   radiusControl: document.querySelector("#radiusControl"),
@@ -400,6 +402,11 @@ function loadState() {
     }
     if (!Object.prototype.hasOwnProperty.call(storedState, "eventsSectionSeeded")) {
       loadedState.eventsSectionSeeded = false;
+    }
+    if (!Object.prototype.hasOwnProperty.call(storedState, "externalLinkIcons")) {
+      loadedState.externalLinkIcons = Object.prototype.hasOwnProperty.call(storedState, "footerExternalIcons")
+        ? storedState.footerExternalIcons
+        : true;
     }
     if (!Object.prototype.hasOwnProperty.call(storedState, "typographyDefaultsUpdated")) {
       if (loadedState.font === "EB Garamond" && loadedState.secondaryFont === "Roboto") {
@@ -1438,6 +1445,7 @@ function removeGalleryImage(imageId) {
 function renderControls() {
   elements.siteTitle.value = state.siteTitle;
   elements.tagline.value = state.tagline;
+  elements.externalLinkIcons.checked = state.externalLinkIcons !== false;
   elements.fontChoice.value = state.font;
   elements.secondaryFontChoice.value = state.secondaryFont || "Inter";
   elements.radiusControl.value = state.radius;
@@ -1455,6 +1463,7 @@ function renderPreview() {
   elements.sitePreview.style.setProperty("--site-body-font", activeSecondaryFontStack());
   elements.sitePreview.style.setProperty("--site-image", cssUrl(currentHeroImage()));
   elements.sitePreview.style.borderRadius = `${Math.min(Number(state.radius), 12)}px`;
+  elements.sitePreview.classList.toggle("hide-external-icons", state.externalLinkIcons === false);
   elements.sitePreview.innerHTML = buildSiteHtml(false);
   elements.exportCode.value = buildExportDocument();
 }
@@ -1833,6 +1842,7 @@ function buildExportDocument() {
     body { margin: 0; color: ${palette.ink}; background: ${palette.paper}; font-family: ${activeSecondaryFontStack()}; }
     h2, h3, h4, summary, strong, .site-logo, .site-cta { overflow-wrap: anywhere; word-break: normal; hyphens: auto; }
     a[href^="http"]::after { content: "↗"; display: inline-block; margin-left: .35em; color: currentColor; font-family: ${activeFontStack()}; font-size: .8em; font-weight: 900; line-height: 1; text-decoration: none; }
+    body.hide-external-icons a[href^="http"]::after { content: none; }
     .site-nav, .site-section, .site-footer { padding-left: clamp(20px, 5vw, 70px); padding-right: clamp(20px, 5vw, 70px); }
     .site-nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 18px; background: ${palette.paper}; border-bottom: 1px solid rgba(0,0,0,.12); }
     .site-logo { display: block; width: min(220px, 42vw); font-family: ${activeFontStack()}; font-weight: 900; font-size: 19px; }
@@ -1956,7 +1966,7 @@ function buildExportDocument() {
     @media (max-width: 760px) { .site-hero, .site-section.feature, .site-section.split, .site-section.stats, .site-section.accordion, .footer-main { grid-template-columns: 1fr; } .card-grid.columns-2, .card-grid.columns-3 { grid-template-columns: 1fr; } .site-hero { display: flex; flex-direction: column; } .site-hero-image, .site-hero.image-left .site-hero-image { order: 0; min-height: 260px; } .site-hero-copy, .site-hero:not(.image-left) .site-hero-copy { order: 1; } .site-nav { align-items: flex-start; flex-direction: column; justify-content: center; } .resources-panel { left: 0; right: auto; width: min(300px, 76vw); } .resources-list { grid-template-columns: 1fr; } .footer-bottom { display: grid; } .site-hero h2 { font-size: 42px; } .site-section h3 { font-size: 28px; } }
   </style>
 </head>
-<body>
+<body${state.externalLinkIcons === false ? ' class="hide-external-icons"' : ""}>
 ${buildSiteHtml(false)}
 <script>
   function handleVideoAction(button) {
@@ -2061,6 +2071,12 @@ function bindInputs() {
   elements.tagline.addEventListener("input", (event) => {
     recordChange(() => {
       state.tagline = event.target.value;
+    });
+  });
+
+  elements.externalLinkIcons.addEventListener("change", (event) => {
+    recordChange(() => {
+      state.externalLinkIcons = event.target.checked;
     });
   });
 

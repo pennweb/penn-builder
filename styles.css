@@ -1398,6 +1398,10 @@ button:focus-visible {
   text-decoration: underline;
 }
 
+.site-preview.hide-external-icons a[href^="http"]::after {
+  content: none;
+}
+
 .footer-bottom {
   display: flex;
   flex-wrap: wrap;

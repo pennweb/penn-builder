@@ -380,6 +380,7 @@ const elements = {
   redoBtn: document.querySelector("#redoBtn"),
   saveBtn: document.querySelector("#saveBtn"),
   exportBtn: document.querySelector("#exportBtn"),
+  downloadBtn: document.querySelector("#downloadBtn"),
   addSectionBtn: document.querySelector("#addSectionBtn"),
   removeSectionBtn: document.querySelector("#removeSectionBtn")
 };
@@ -838,6 +839,22 @@ function showStatus(text) {
   saveTimer = window.setTimeout(() => {
     elements.statusText.textContent = "Ready";
   }, 1200);
+}
+
+function downloadHtml(html) {
+  const filenameBase = String(state.siteTitle || "website")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "website";
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${filenameBase}.html`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function escapeHtml(value) {
@@ -2417,6 +2434,13 @@ function bindInputs() {
       elements.exportCode.select();
       showStatus("Selected");
     }
+  });
+
+  elements.downloadBtn.addEventListener("click", () => {
+    const html = buildExportDocument();
+    elements.exportCode.value = html;
+    downloadHtml(html);
+    showStatus("Downloaded");
   });
 
   document.querySelectorAll(".segment").forEach((button) => {

@@ -66,6 +66,7 @@ const layoutLabels = {
   accordion: "Accordion",
   gallery: "Gallery",
   cards: "Cards",
+  events: "Events",
   video: "Video"
 };
 
@@ -117,6 +118,7 @@ const starterState = {
   previewId: PREVIEW_ID,
   videoSectionSeeded: true,
   cardsSectionSeeded: true,
+  eventsSectionSeeded: true,
   typographyDefaultsUpdated: true,
   siteTitle: "Penn",
   tagline: "A Philadelphia campus where rigorous teaching, interdisciplinary research, and civic engagement move ideas into the world.",
@@ -255,6 +257,43 @@ const starterState = {
       visible: true
     },
     {
+      id: "events",
+      layout: "events",
+      label: "Events",
+      heading: "Events",
+      body: "A Penn-inspired event lineup styled with calendar date cards, editorial copy, and optional imagery.",
+      eventItems: [
+        {
+          id: "event-talks",
+          category: "Talks",
+          month: "MAY",
+          day: "14",
+          title: "Boosting Infrastructure Investment for Global Cities",
+          description: "Susan Wachter joins public finance experts for a conversation on how cities can meet the demands of population growth and climate change.",
+          image: PENN_GALLERY_CITY
+        },
+        {
+          id: "event-student-life",
+          category: "Student Life",
+          month: "MAY",
+          day: "21",
+          title: "Spring Traditions Across Campus",
+          description: "Students gather for performances, cultural events, and campus traditions that connect the Penn community.",
+          image: PENN_STUDENT_HOLI_IMAGE
+        },
+        {
+          id: "event-research",
+          category: "Research",
+          month: "JUN",
+          day: "04",
+          title: "Discovery at the Edge of Medicine and Engineering",
+          description: "Faculty and students share new research that connects labs, clinics, and technology with public impact.",
+          image: PENN_RESEARCH_LAB_IMAGE
+        }
+      ],
+      visible: true
+    },
+    {
       id: "video",
       layout: "video",
       label: "Video",
@@ -321,6 +360,9 @@ const elements = {
   cardColumnsInputs: document.querySelectorAll('input[name="cardColumns"]'),
   cardItemEditorList: document.querySelector("#cardItemEditorList"),
   addCardItemBtn: document.querySelector("#addCardItemBtn"),
+  eventsEditor: document.querySelector("#eventsEditor"),
+  eventItemEditorList: document.querySelector("#eventItemEditorList"),
+  addEventItemBtn: document.querySelector("#addEventItemBtn"),
   visibleToggle: document.querySelector("#visibleToggle"),
   inspectorTitle: document.querySelector("#inspectorTitle"),
   previewFrame: document.querySelector("#previewFrame"),
@@ -351,6 +393,9 @@ function loadState() {
     if (!Object.prototype.hasOwnProperty.call(storedState, "cardsSectionSeeded")) {
       loadedState.cardsSectionSeeded = false;
     }
+    if (!Object.prototype.hasOwnProperty.call(storedState, "eventsSectionSeeded")) {
+      loadedState.eventsSectionSeeded = false;
+    }
     if (!Object.prototype.hasOwnProperty.call(storedState, "typographyDefaultsUpdated")) {
       if (loadedState.font === "EB Garamond" && loadedState.secondaryFont === "Roboto") {
         loadedState.font = "Roboto";
@@ -366,6 +411,7 @@ function loadState() {
     }
     replaceBrokenPreviewImages(loadedState);
     ensureCardsSection(loadedState);
+    ensureEventsSection(loadedState);
     ensureVideoSection(loadedState);
     return loadedState;
   } catch {
@@ -394,6 +440,18 @@ function defaultCardsSection() {
     body: "Use cards to highlight high-priority paths, stories, or calls to action with color and imagery.",
     cardColumns: 3,
     cardItems: defaultCardItems(),
+    visible: true
+  };
+}
+
+function defaultEventsSection() {
+  return {
+    id: "events",
+    layout: "events",
+    label: "Events",
+    heading: "Events",
+    body: "A Penn-inspired event lineup styled with calendar date cards, editorial copy, and optional imagery.",
+    eventItems: defaultEventItems(),
     visible: true
   };
 }
@@ -437,6 +495,31 @@ function ensureCardsSection(targetState) {
   const insertIndex = videoIndex !== -1 ? videoIndex : quoteIndex !== -1 ? quoteIndex : targetState.sections.length;
   targetState.sections.splice(insertIndex, 0, defaultCardsSection());
   targetState.cardsSectionSeeded = true;
+}
+
+function ensureEventsSection(targetState) {
+  if (!targetState.sections) return;
+
+  const existingEventsSection = targetState.sections.find((section) => section.layout === "events");
+  if (existingEventsSection) {
+    if (existingEventsSection.label === "Upcoming Events") {
+      existingEventsSection.label = "Events";
+    }
+    if (existingEventsSection.heading === "Upcoming Events") {
+      existingEventsSection.heading = "Events";
+    }
+    existingEventsSection.eventItems = eventItemsFor(existingEventsSection);
+    targetState.eventsSectionSeeded = true;
+    return;
+  }
+
+  if (targetState.eventsSectionSeeded) return;
+
+  const videoIndex = targetState.sections.findIndex((section) => section.layout === "video");
+  const quoteIndex = targetState.sections.findIndex((section) => section.layout === "quote");
+  const insertIndex = videoIndex !== -1 ? videoIndex : quoteIndex !== -1 ? quoteIndex : targetState.sections.length;
+  targetState.sections.splice(insertIndex, 0, defaultEventsSection());
+  targetState.eventsSectionSeeded = true;
 }
 
 function replaceBrokenPreviewImages(targetState) {
@@ -628,6 +711,60 @@ function cardItemsFor(section) {
   }
 
   return section.cardItems;
+}
+
+function defaultEventItems() {
+  return [
+    {
+      id: `event-${Date.now()}-1`,
+      category: "Talks",
+      month: "MAY",
+      day: "14",
+      title: "Boosting Infrastructure Investment for Global Cities",
+      description: "Susan Wachter joins public finance experts for a conversation on how cities can meet the demands of population growth and climate change.",
+      image: PENN_GALLERY_CITY
+    },
+    {
+      id: `event-${Date.now()}-2`,
+      category: "Student Life",
+      month: "MAY",
+      day: "21",
+      title: "Spring Traditions Across Campus",
+      description: "Students gather for performances, cultural events, and campus traditions that connect the Penn community.",
+      image: PENN_STUDENT_HOLI_IMAGE
+    },
+    {
+      id: `event-${Date.now()}-3`,
+      category: "Research",
+      month: "JUN",
+      day: "04",
+      title: "Discovery at the Edge of Medicine and Engineering",
+      description: "Faculty and students share new research that connects labs, clinics, and technology with public impact.",
+      image: PENN_RESEARCH_LAB_IMAGE
+    }
+  ];
+}
+
+function eventItemsFor(section) {
+  if (!section.eventItems || !section.eventItems.length) {
+    section.eventItems = defaultEventItems();
+  }
+
+  section.eventItems = section.eventItems.slice(0, 3).map((eventItem, index) => ({
+    id: eventItem.id || `event-${Date.now()}-${index}`,
+    category: eventItem.category || "Event",
+    month: eventItem.month || "MAY",
+    day: eventItem.day || String(index + 1).padStart(2, "0"),
+    title: eventItem.title || `Upcoming event ${index + 1}`,
+    description: eventItem.description || eventItem.body || "",
+    image: eventItem.image || ""
+  }));
+
+  while (section.eventItems.length < 2) {
+    section.eventItems.push(defaultEventItems()[section.eventItems.length]);
+  }
+
+  return section.eventItems;
 }
 
 function readImageFiles(files, onLoad) {
@@ -941,6 +1078,8 @@ function renderInspector() {
   elements.accordionEditor.hidden = section.layout !== "accordion";
   elements.galleryEditor.hidden = section.layout !== "gallery";
   elements.cardsEditor.hidden = section.layout !== "cards";
+  elements.eventsEditor.hidden = section.layout !== "events";
+  elements.addEventItemBtn.disabled = section.layout === "events" && eventItemsFor(section).length >= 3;
   elements.cardColumnsInputs.forEach((input) => {
     input.checked = Number(input.value) === Number(section.cardColumns || 3);
   });
@@ -949,6 +1088,7 @@ function renderInspector() {
   renderAccordionEditor(section);
   renderGalleryEditor(section);
   renderCardsEditor(section);
+  renderEventsEditor(section);
 }
 
 function renderAccordionEditor(section) {
@@ -1132,6 +1272,138 @@ function updateCardImage(cardId, files, input) {
 function removeCardItem(cardId) {
   updateSelectedSection((section) => {
     section.cardItems = cardItemsFor(section).filter((card) => card.id !== cardId);
+  });
+}
+
+function renderEventsEditor(section) {
+  elements.eventItemEditorList.innerHTML = "";
+  if (section.layout !== "events") return;
+
+  const events = eventItemsFor(section);
+  elements.addEventItemBtn.disabled = events.length >= 3;
+
+  events.forEach((eventItem, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "event-item-editor";
+    wrapper.innerHTML = `
+      <div class="event-editor-row">
+        <label class="field">
+          <span>Month</span>
+          <input type="text" maxlength="3" data-event-month="${eventItem.id}">
+        </label>
+        <label class="field">
+          <span>Calendar number</span>
+          <input type="text" maxlength="2" inputmode="numeric" data-event-day="${eventItem.id}">
+        </label>
+      </div>
+      <label class="field">
+        <span>Category</span>
+        <input type="text" maxlength="36" data-event-category="${eventItem.id}">
+      </label>
+      <label class="field">
+        <span>Title</span>
+        <input type="text" maxlength="120" data-event-title="${eventItem.id}">
+      </label>
+      <label class="field">
+        <span>Description</span>
+        <textarea rows="4" maxlength="520" data-event-description="${eventItem.id}"></textarea>
+      </label>
+      <label class="field">
+        <span>Image</span>
+        <input type="file" accept="image/*" data-event-image="${eventItem.id}">
+        <small>${eventItem.image ? "Image selected" : "No image selected"}</small>
+      </label>
+      ${
+        eventItem.image
+          ? `<div class="gallery-image-editor"><img src="${escapeHtml(eventItem.image)}" alt=""><div><p class="gallery-empty">Current image</p><button class="small-danger-button" type="button" data-remove-event-image="${eventItem.id}">Remove image</button></div></div>`
+          : ""
+      }
+      <button class="small-danger-button" type="button" data-remove-event-item="${eventItem.id}" ${events.length <= 2 ? "disabled" : ""}>Remove event</button>
+    `;
+
+    wrapper.querySelector(`[data-event-month="${eventItem.id}"]`).value = eventItem.month || "MAY";
+    wrapper.querySelector(`[data-event-day="${eventItem.id}"]`).value = eventItem.day || String(index + 1).padStart(2, "0");
+    wrapper.querySelector(`[data-event-category="${eventItem.id}"]`).value = eventItem.category || "Event";
+    wrapper.querySelector(`[data-event-title="${eventItem.id}"]`).value = eventItem.title || `Upcoming event ${index + 1}`;
+    wrapper.querySelector(`[data-event-description="${eventItem.id}"]`).value = eventItem.description || "";
+
+    wrapper.querySelector(`[data-event-month="${eventItem.id}"]`).addEventListener("input", (event) => {
+      updateEventItem(eventItem.id, "month", event.target.value.toUpperCase());
+    });
+
+    wrapper.querySelector(`[data-event-day="${eventItem.id}"]`).addEventListener("input", (event) => {
+      updateEventItem(eventItem.id, "day", event.target.value.replace(/\D/g, "").slice(0, 2));
+    });
+
+    wrapper.querySelector(`[data-event-category="${eventItem.id}"]`).addEventListener("input", (event) => {
+      updateEventItem(eventItem.id, "category", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-event-title="${eventItem.id}"]`).addEventListener("input", (event) => {
+      updateEventItem(eventItem.id, "title", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-event-description="${eventItem.id}"]`).addEventListener("input", (event) => {
+      updateEventItem(eventItem.id, "description", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-event-image="${eventItem.id}"]`).addEventListener("change", (event) => {
+      updateEventImage(eventItem.id, event.target.files, event.target);
+    });
+
+    const removeImageButton = wrapper.querySelector(`[data-remove-event-image="${eventItem.id}"]`);
+    if (removeImageButton) {
+      removeImageButton.addEventListener("click", () => {
+        updateEventItem(eventItem.id, "image", "");
+      });
+    }
+
+    wrapper.querySelector(`[data-remove-event-item="${eventItem.id}"]`).addEventListener("click", () => {
+      removeEventItem(eventItem.id);
+    });
+
+    elements.eventItemEditorList.append(wrapper);
+  });
+}
+
+function updateEventItem(eventId, key, value) {
+  updateSelectedSection((section) => {
+    const eventItem = eventItemsFor(section).find((candidate) => candidate.id === eventId);
+    if (eventItem) eventItem[key] = value;
+  });
+}
+
+function updateEventImage(eventId, files, input) {
+  const [file] = files;
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    showStatus("Choose an image");
+    input.value = "";
+    return;
+  }
+
+  const selectedId = state.selectedId;
+  const previousState = structuredClone(state);
+  readImageFile(file, (imageData) => {
+    undoStack.push(previousState);
+    redoStack = [];
+    const section = state.sections.find((item) => item.id === selectedId);
+    if (section) {
+      const eventItem = eventItemsFor(section).find((candidate) => candidate.id === eventId);
+      if (eventItem) eventItem.image = imageData;
+      state.selectedId = selectedId;
+    }
+    input.value = "";
+    persist();
+    render();
+  });
+}
+
+function removeEventItem(eventId) {
+  updateSelectedSection((section) => {
+    if (eventItemsFor(section).length <= 2) return;
+    section.eventItems = eventItemsFor(section).filter((eventItem) => eventItem.id !== eventId);
   });
 }
 
@@ -1359,6 +1631,52 @@ function buildSectionHtml(section) {
     `;
   }
 
+  if (section.layout === "events") {
+    const events = eventItemsFor(section);
+
+    return `
+      <section class="site-section events">
+        <div class="site-copy">
+          <h3>${heading}</h3>
+          <p>${body}</p>
+        </div>
+        <div class="events-grid">
+          ${events
+            .map((eventItem, index) => {
+              const category = escapeHtml(eventItem.category || "Event");
+              const month = escapeHtml(String(eventItem.month || "MAY").toUpperCase().slice(0, 3));
+              const day = escapeHtml(eventItem.day || String(index + 1).padStart(2, "0"));
+              const title = escapeHtml(eventItem.title || `Upcoming event ${index + 1}`);
+              const description = escapeHtml(eventItem.description || "");
+              const image = eventItem.image ? escapeHtml(eventItem.image) : "";
+              const calendar = `
+                <div class="event-calendar" aria-label="${month} ${day}">
+                  <span class="event-month">${month}</span>
+                  <span class="event-day">${day}</span>
+                </div>
+              `;
+
+              return `
+                <article class="event-card${image ? "" : " no-image"}">
+                  ${
+                    image
+                      ? `<div class="event-media"><img src="${image}" alt="${title}">${calendar}</div>`
+                      : calendar
+                  }
+                  <div class="event-copy">
+                    <p class="event-category">${category}</p>
+                    <h4>${title}</h4>
+                    <p>${description}</p>
+                  </div>
+                </article>
+              `;
+            })
+            .join("")}
+        </div>
+      </section>
+    `;
+  }
+
   if (section.layout === "text") {
     return `
       <section class="site-section text">
@@ -1538,6 +1856,21 @@ function buildExportDocument() {
     .content-card-copy { display: grid; gap: 9px; padding: clamp(16px, 3vw, 22px); }
     .content-card h4 { margin: 0; font-family: ${activeFontStack()}; font-size: 22px; line-height: 1.12; overflow-wrap: anywhere; }
     .content-card p { color: color-mix(in srgb, currentColor 78%, transparent); }
+    .site-section.events { display: grid; gap: clamp(26px, 5vw, 44px); background: #ffffff; }
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: clamp(26px, 5vw, 44px); }
+    .event-card { position: relative; min-width: 0; display: grid; align-content: start; gap: clamp(28px, 4vw, 42px); padding-right: clamp(18px, 3vw, 34px); border-right: 1px solid rgba(0,0,0,.18); background: #ffffff; color: ${palette.ink}; }
+    .event-media { position: relative; aspect-ratio: 16 / 9; overflow: visible; }
+    .event-media img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center; }
+    .event-calendar { width: clamp(70px, 14vw, 88px); position: absolute; top: clamp(12px, 3vw, 24px); right: clamp(12px, 3vw, 24px); display: grid; text-align: center; box-shadow: 0 14px 28px rgba(1,31,91,.12); z-index: 2; }
+    .event-card.no-image { padding-top: clamp(84px, 10vw, 110px); }
+    .event-card.no-image .event-calendar { top: 0; right: clamp(12px, 3vw, 24px); }
+    .event-month { min-height: 32px; display: grid; place-items: center; background: ${palette.accent}; color: #ffffff; font-family: ${activeFontStack()}; font-size: 14px; font-weight: 900; text-transform: uppercase; }
+    .event-day { min-height: 62px; display: grid; place-items: center; background: #ffffff; color: ${palette.ink}; font-family: ${activeSecondaryFontStack()}; font-size: clamp(34px, 5vw, 44px); line-height: 1; }
+    .event-copy { display: grid; gap: 14px; }
+    .event-category { position: relative; margin: 0; padding-bottom: 22px; color: ${palette.ink}; font-family: ${activeFontStack()}; font-size: 22px; font-weight: 900; line-height: 1.1; text-transform: uppercase; }
+    .event-category::after { content: ""; position: absolute; left: 0; bottom: 0; width: 40px; height: 7px; background: rgba(1,31,91,.18); }
+    .event-copy h4 { margin: 0; color: ${palette.ink}; font-family: ${activeFontStack()}; font-size: clamp(21px, 2vw, 24px); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+    .event-copy p:last-child { color: color-mix(in srgb, ${palette.ink} 70%, transparent); font-family: ${activeSecondaryFontStack()}; font-size: 18px; line-height: 1.65; }
     .site-section.video { display: grid; gap: 22px; background: color-mix(in srgb, ${palette.paper} 94%, #ffffff); }
     .video-panel { display: grid; gap: 10px; width: 100%; }
     .video-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
@@ -1746,6 +2079,8 @@ function bindInputs() {
         galleryImagesFor(section);
       } else if (section.layout === "cards") {
         cardItemsFor(section);
+      } else if (section.layout === "events") {
+        eventItemsFor(section);
       } else if (section.layout === "quote" && !section.quoteColor) {
         section.quoteColor = "red";
       } else if (section.layout === "video" && !section.videoUrl) {
@@ -1786,6 +2121,22 @@ function bindInputs() {
         title: "New card",
         body: "Add supporting copy for this card.",
         color: "white",
+        image: ""
+      });
+    });
+  });
+
+  elements.addEventItemBtn.addEventListener("click", () => {
+    updateSelectedSection((section) => {
+      section.layout = "events";
+      if (eventItemsFor(section).length >= 3) return;
+      section.eventItems.push({
+        id: `event-${Date.now()}`,
+        category: "Event",
+        month: "MAY",
+        day: String(section.eventItems.length + 1).padStart(2, "0"),
+        title: "New upcoming event",
+        description: "Add event details, speakers, location, or registration information.",
         image: ""
       });
     });

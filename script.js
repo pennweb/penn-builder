@@ -101,6 +101,7 @@ const PENN_GALLERY_IMAGES = [
 const DEFAULT_HERO_IMAGE = PENN_HERO_IMAGE;
 const OLD_DEFAULT_VIDEO_URLS = ["https://vimeo.com/416160065"];
 const DEFAULT_VIDEO_URL = "https://vimeo.com/1084537";
+const DEFAULT_BUTTON_URL = "https://www.upenn.edu";
 const PREVIEW_ID = "upenn-preview-2026-05-09-penn-buildings";
 const PENN_RESOURCE_LINKS = [
   { label: "Current Students", href: "https://path.at.upenn.edu/" },
@@ -136,6 +137,7 @@ const starterState = {
       heading: "Penn",
       body: "Rooted in Philadelphia and connected to the world, Penn brings teaching, research, service, and innovation together across a historic urban campus.",
       buttonText: "Explore Penn",
+      buttonUrl: DEFAULT_BUTTON_URL,
       heroImage: PENN_HERO_IMAGE,
       heroImagePosition: "right",
       visible: true
@@ -155,6 +157,7 @@ const starterState = {
       heading: "Academics across a connected university.",
       body: "Four undergraduate schools and 12 graduate and professional schools create a distinctive ecosystem for learning across liberal arts, business, engineering, design, law, medicine, education, policy, and more.",
       buttonText: "View academics",
+      buttonUrl: DEFAULT_BUTTON_URL,
       splitColor: "blue",
       visible: true
     },
@@ -173,6 +176,7 @@ const starterState = {
       heading: "Research and innovation with public purpose.",
       body: "Penn's research enterprise spans medicine, technology, business, science, the humanities, and the social sciences, pairing discovery with practical impact for communities nearby and around the world.",
       buttonText: "Research at Penn",
+      buttonUrl: DEFAULT_BUTTON_URL,
       visible: true
     },
     {
@@ -341,6 +345,8 @@ const elements = {
   sectionLabel: document.querySelector("#sectionLabel"),
   buttonTextField: document.querySelector("#buttonTextField"),
   buttonText: document.querySelector("#buttonText"),
+  buttonUrlField: document.querySelector("#buttonUrlField"),
+  buttonUrl: document.querySelector("#buttonUrl"),
   videoUrlField: document.querySelector("#videoUrlField"),
   videoUrl: document.querySelector("#videoUrl"),
   imageUploadField: document.querySelector("#imageUploadField"),
@@ -423,6 +429,11 @@ function loadState() {
       }
     }
     if (loadedState.sections) {
+      loadedState.sections.forEach((section) => {
+        if (layoutHasButton(section.layout) && !section.buttonUrl) {
+          section.buttonUrl = DEFAULT_BUTTON_URL;
+        }
+      });
       const defaultQuoteSection = loadedState.sections.find((section) => section.layout === "quote");
       if (
         defaultQuoteSection &&
@@ -637,6 +648,10 @@ function buttonTextFor(section) {
   return section.layout === "hero" ? "Book a call" : "Start a project";
 }
 
+function buttonUrlFor(section) {
+  return section.buttonUrl || DEFAULT_BUTTON_URL;
+}
+
 function defaultAccordionItems() {
   return [
     {
@@ -684,6 +699,7 @@ function defaultCardItems() {
     {
       id: `card-${Date.now()}-1`,
       title: "Student Life",
+      url: DEFAULT_BUTTON_URL,
       body: "Clubs, traditions, cultural centers, performances, and campus events make Penn feel active every week.",
       color: "white",
       image: PENN_STUDENT_HOLI_IMAGE
@@ -691,6 +707,7 @@ function defaultCardItems() {
     {
       id: `card-${Date.now()}-2`,
       title: "Research",
+      url: DEFAULT_BUTTON_URL,
       body: "Labs, clinics, studios, and institutes connect discovery with practical impact across disciplines.",
       color: "blue",
       image: PENN_RESEARCH_LAB_IMAGE
@@ -698,6 +715,7 @@ function defaultCardItems() {
     {
       id: `card-${Date.now()}-3`,
       title: "Campus Landmarks",
+      url: DEFAULT_BUTTON_URL,
       body: "Historic buildings and green spaces anchor a campus woven into the life of Philadelphia.",
       color: "red",
       image: PENN_FISHER_FINE_ARTS_IMAGE
@@ -715,6 +733,7 @@ function cardItemsFor(section) {
       return {
         id: `card-${Date.now()}-${index}`,
         title: card,
+        url: DEFAULT_BUTTON_URL,
         body: "",
         color: "white",
         image: ""
@@ -724,6 +743,7 @@ function cardItemsFor(section) {
     return {
       id: card.id || `card-${Date.now()}-${index}`,
       title: card.title || `Card ${index + 1}`,
+      url: card.url || DEFAULT_BUTTON_URL,
       body: card.body || "",
       color: ["white", "blue", "red"].includes(card.color) ? card.color : "white",
       image: card.image || ""
@@ -745,6 +765,7 @@ function defaultEventItems() {
       month: "MAY",
       day: "14",
       title: "Boosting Infrastructure Investment for Global Cities",
+      url: DEFAULT_BUTTON_URL,
       description: "Susan Wachter joins public finance experts for a conversation on how cities can meet the demands of population growth and climate change.",
       image: PENN_GALLERY_CITY
     },
@@ -754,6 +775,7 @@ function defaultEventItems() {
       month: "MAY",
       day: "21",
       title: "Spring Traditions Across Campus",
+      url: DEFAULT_BUTTON_URL,
       description: "Students gather for performances, cultural events, and campus traditions that connect the Penn community.",
       image: PENN_STUDENT_HOLI_IMAGE
     },
@@ -763,6 +785,7 @@ function defaultEventItems() {
       month: "JUN",
       day: "04",
       title: "Discovery at the Edge of Medicine and Engineering",
+      url: DEFAULT_BUTTON_URL,
       description: "Faculty and students share new research that connects labs, clinics, and technology with public impact.",
       image: PENN_RESEARCH_LAB_IMAGE
     }
@@ -780,6 +803,7 @@ function eventItemsFor(section) {
     month: eventItem.month || "MAY",
     day: eventItem.day || String(index + 1).padStart(2, "0"),
     title: eventItem.title || `Upcoming event ${index + 1}`,
+    url: eventItem.url || DEFAULT_BUTTON_URL,
     description: eventItem.description || eventItem.body || "",
     image: eventItem.image || ""
   }));
@@ -1081,6 +1105,8 @@ function renderInspector() {
   elements.sectionBodyField.hidden = section.layout === "accordion";
   elements.buttonTextField.hidden = !layoutHasButton(section.layout);
   elements.buttonText.value = buttonTextFor(section);
+  elements.buttonUrlField.hidden = !layoutHasButton(section.layout);
+  elements.buttonUrl.value = layoutHasButton(section.layout) ? buttonUrlFor(section) : "";
   elements.videoUrlField.hidden = section.layout !== "video";
   elements.videoUrl.value = section.videoUrl || "";
   elements.imageUploadField.hidden = section.layout !== "image";
@@ -1233,6 +1259,10 @@ function renderCardsEditor(section) {
         <input type="text" maxlength="80" data-card-title="${card.id}">
       </label>
       <label class="field">
+        <span>URL</span>
+        <input type="url" data-card-url="${card.id}" placeholder="${DEFAULT_BUTTON_URL}">
+      </label>
+      <label class="field">
         <span>Body</span>
         <textarea rows="3" maxlength="240" data-card-body="${card.id}"></textarea>
       </label>
@@ -1254,11 +1284,16 @@ function renderCardsEditor(section) {
     `;
 
     wrapper.querySelector(`[data-card-title="${card.id}"]`).value = card.title || `Card ${index + 1}`;
+    wrapper.querySelector(`[data-card-url="${card.id}"]`).value = card.url || DEFAULT_BUTTON_URL;
     wrapper.querySelector(`[data-card-body="${card.id}"]`).value = card.body || "";
     wrapper.querySelector(`[data-card-color="${card.id}"]`).value = card.color || "white";
 
     wrapper.querySelector(`[data-card-title="${card.id}"]`).addEventListener("input", (event) => {
       updateCardItem(card.id, "title", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-card-url="${card.id}"]`).addEventListener("input", (event) => {
+      updateCardItem(card.id, "url", event.target.value);
     });
 
     wrapper.querySelector(`[data-card-body="${card.id}"]`).addEventListener("input", (event) => {
@@ -1351,6 +1386,10 @@ function renderEventsEditor(section) {
         <input type="text" maxlength="120" data-event-title="${eventItem.id}">
       </label>
       <label class="field">
+        <span>URL</span>
+        <input type="url" data-event-url="${eventItem.id}" placeholder="${DEFAULT_BUTTON_URL}">
+      </label>
+      <label class="field">
         <span>Description</span>
         <textarea rows="4" maxlength="520" data-event-description="${eventItem.id}"></textarea>
       </label>
@@ -1371,6 +1410,7 @@ function renderEventsEditor(section) {
     wrapper.querySelector(`[data-event-day="${eventItem.id}"]`).value = eventItem.day || String(index + 1).padStart(2, "0");
     wrapper.querySelector(`[data-event-category="${eventItem.id}"]`).value = eventItem.category || "Event";
     wrapper.querySelector(`[data-event-title="${eventItem.id}"]`).value = eventItem.title || `Upcoming event ${index + 1}`;
+    wrapper.querySelector(`[data-event-url="${eventItem.id}"]`).value = eventItem.url || DEFAULT_BUTTON_URL;
     wrapper.querySelector(`[data-event-description="${eventItem.id}"]`).value = eventItem.description || "";
 
     wrapper.querySelector(`[data-event-month="${eventItem.id}"]`).addEventListener("input", (event) => {
@@ -1387,6 +1427,10 @@ function renderEventsEditor(section) {
 
     wrapper.querySelector(`[data-event-title="${eventItem.id}"]`).addEventListener("input", (event) => {
       updateEventItem(eventItem.id, "title", event.target.value);
+    });
+
+    wrapper.querySelector(`[data-event-url="${eventItem.id}"]`).addEventListener("input", (event) => {
+      updateEventItem(eventItem.id, "url", event.target.value);
     });
 
     wrapper.querySelector(`[data-event-description="${eventItem.id}"]`).addEventListener("input", (event) => {
@@ -1510,6 +1554,7 @@ function buildSectionHtml(section) {
   const heading = escapeHtml(section.heading);
   const body = escapeHtml(section.body);
   const buttonText = escapeHtml(buttonTextFor(section));
+  const buttonUrl = escapeHtml(buttonUrlFor(section));
 
   if (section.layout === "hero") {
     const heroImage = escapeHtml(section.heroImage || DEFAULT_HERO_IMAGE);
@@ -1522,7 +1567,7 @@ function buildSectionHtml(section) {
         <div class="site-hero-copy">
           <h2>${heading}</h2>
           <p>${body || escapeHtml(state.tagline)}</p>
-          <a class="site-cta" href="#contact">${buttonText}</a>
+          <a class="site-cta" href="${buttonUrl}">${buttonText}</a>
         </div>
       </header>
     `;
@@ -1660,6 +1705,7 @@ function buildSectionHtml(section) {
           ${cards
             .map((card, index) => {
               const title = escapeHtml(card.title || `Card ${index + 1}`);
+              const cardUrl = escapeHtml(card.url || DEFAULT_BUTTON_URL);
               const cardBody = escapeHtml(card.body || "");
               const color = ["white", "blue", "red"].includes(card.color) ? card.color : "white";
               const cardImage = card.image ? escapeHtml(card.image) : "";
@@ -1667,7 +1713,7 @@ function buildSectionHtml(section) {
                 <article class="content-card ${color}">
                   ${cardImage ? `<img class="content-card-image" src="${cardImage}" alt="${title}">` : ""}
                   <div class="content-card-copy">
-                    <h4>${title}</h4>
+                    <h4><a href="${cardUrl}">${title}</a></h4>
                     <p>${cardBody}</p>
                   </div>
                 </article>
@@ -1695,6 +1741,7 @@ function buildSectionHtml(section) {
               const month = escapeHtml(String(eventItem.month || "MAY").toUpperCase().slice(0, 3));
               const day = escapeHtml(eventItem.day || String(index + 1).padStart(2, "0"));
               const title = escapeHtml(eventItem.title || `Upcoming event ${index + 1}`);
+              const eventUrl = escapeHtml(eventItem.url || DEFAULT_BUTTON_URL);
               const description = escapeHtml(eventItem.description || "");
               const image = eventItem.image ? escapeHtml(eventItem.image) : "";
               const calendar = `
@@ -1713,7 +1760,7 @@ function buildSectionHtml(section) {
                   }
                   <div class="event-copy">
                     <p class="event-category">${category}</p>
-                    <h4>${title}</h4>
+                    <h4><a href="${eventUrl}">${title}</a></h4>
                     <p>${description}</p>
                   </div>
                 </article>
@@ -1758,7 +1805,7 @@ function buildSectionHtml(section) {
       <h3>${heading}</h3>
       <div class="site-copy">
         <p>${body}</p>
-        <a class="site-cta" href="#contact">${buttonText}</a>
+        <a class="site-cta" href="${buttonUrl}">${buttonText}</a>
       </div>
     </section>
   `;
@@ -1916,6 +1963,8 @@ function buildExportDocument() {
     .content-card-image { width: 100%; aspect-ratio: 16 / 10; display: block; object-fit: cover; object-position: center; }
     .content-card-copy { display: grid; gap: 9px; padding: clamp(16px, 3vw, 22px); }
     .content-card h4 { margin: 0; font-family: ${activeFontStack()}; font-size: 22px; line-height: 1.12; overflow-wrap: anywhere; }
+    .content-card h4 a, .event-copy h4 a { color: inherit; text-decoration: none; }
+    .content-card h4 a:hover, .event-copy h4 a:hover { text-decoration: underline; text-underline-offset: 4px; }
     .content-card p { color: color-mix(in srgb, currentColor 78%, transparent); }
     .site-section.events { display: grid; gap: clamp(26px, 5vw, 44px); background: #ffffff; }
     .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: clamp(26px, 5vw, 44px); }
@@ -2190,6 +2239,7 @@ function bindInputs() {
       cardItemsFor(section).push({
         id: `card-${Date.now()}`,
         title: "New card",
+        url: DEFAULT_BUTTON_URL,
         body: "Add supporting copy for this card.",
         color: "white",
         image: ""
@@ -2207,6 +2257,7 @@ function bindInputs() {
         month: "MAY",
         day: String(section.eventItems.length + 1).padStart(2, "0"),
         title: "New upcoming event",
+        url: DEFAULT_BUTTON_URL,
         description: "Add event details, speakers, location, or registration information.",
         image: ""
       });
@@ -2258,6 +2309,12 @@ function bindInputs() {
   elements.buttonText.addEventListener("input", (event) => {
     updateSelectedSection((section) => {
       section.buttonText = event.target.value;
+    });
+  });
+
+  elements.buttonUrl.addEventListener("input", (event) => {
+    updateSelectedSection((section) => {
+      section.buttonUrl = event.target.value;
     });
   });
 
@@ -2381,6 +2438,7 @@ function bindInputs() {
         label: "Fullbleed",
         heading: "A focused new section.",
         body: "Add a concise point, proof, or offer that makes the page stronger.",
+        buttonUrl: DEFAULT_BUTTON_URL,
         visible: true
       });
       state.selectedId = id;

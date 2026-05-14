@@ -865,20 +865,219 @@ function showStatus(text) {
   }, 1200);
 }
 
-function downloadHtml(html) {
-  const filenameBase = String(state.siteTitle || "website")
+function downloadFilenameBase() {
+  return String(state.siteTitle || "website")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "website";
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+}
+
+function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${filenameBase}.html`;
+  link.download = filename;
   document.body.append(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function bytesFromText(text) {
+  return new TextEncoder().encode(text);
+}
+
+function extensionForMime(mimeType) {
+  const cleanType = String(mimeType || "").toLowerCase().split(";")[0];
+  if (cleanType === "image/jpeg" || cleanType === "image/jpg") return "jpg";
+  if (cleanType === "image/png") return "png";
+  if (cleanType === "image/gif") return "gif";
+  if (cleanType === "image/webp") return "webp";
+  if (cleanType === "image/svg+xml") return "svg";
+  return "bin";
+}
+
+function bytesFromDataUrl(dataUrl) {
+  const match = String(dataUrl).match(/^data:([^;,]+)?(;base64)?,(.*)$/);
+  if (!match) return null;
+
+  const [, mimeType = "application/octet-stream", base64Flag, payload] = match;
+  if (base64Flag) {
+    const binary = atob(payload);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return { bytes, extension: extensionForMime(mimeType) };
+  }
+
+  return {
+    bytes: bytesFromText(decodeURIComponent(payload)),
+    extension: extensionForMime(mimeType)
+  };
+}
+
+function shouldPackageAsset(src) {
+  if (!src || src.startsWith("data:")) return false;
+  if (/^(https?:|mailto:|tel:|#)/i.test(src)) return false;
+  return true;
+}
+
+function normalizedAssetPath(src) {
+  return String(src).replace(/^\.?\//, "").split(/[?#]/)[0];
+}
+
+async function fetchAssetBytes(path) {
+  const response = await fetch(path);
+  if (!response.ok) {
+    throw new Error(`Could not fetch ${path}`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+async function buildZipExport(html) {
+  const files = [];
+  const packagedAssets = new Map();
+  let uploadedImageCount = 0;
+
+  const packagedHtml = html.replace(/(<img\b[^>]*\bsrc=")([^"]+)(")/g, (match, before, src, after) => {
+    if (src.startsWith("data:")) {
+      if (!packagedAssets.has(src)) {
+        const imageData = bytesFromDataUrl(src);
+        if (!imageData) return match;
+
+        uploadedImageCount += 1;
+        const filename = `assets/uploaded-image-${uploadedImageCount}.${imageData.extension}`;
+        packagedAssets.set(src, filename);
+        files.push({ name: filename, bytes: imageData.bytes });
+      }
+      return `${before}${packagedAssets.get(src)}${after}`;
+    }
+
+    if (shouldPackageAsset(src)) {
+      const assetPath = normalizedAssetPath(src);
+      if (!packagedAssets.has(assetPath)) {
+        packagedAssets.set(assetPath, assetPath);
+      }
+    }
+
+    return match;
+  });
+
+  for (const [assetPath, filename] of packagedAssets.entries()) {
+    if (assetPath.startsWith("data:")) continue;
+    files.push({ name: filename, bytes: await fetchAssetBytes(assetPath) });
+  }
+
+  files.unshift({ name: "index.html", bytes: bytesFromText(packagedHtml) });
+
+  return {
+    html: packagedHtml,
+    blob: new Blob([createZipArchive(files)], { type: "application/zip" })
+  };
+}
+
+function zipCrcTable() {
+  if (zipCrcTable.cache) return zipCrcTable.cache;
+
+  zipCrcTable.cache = Array.from({ length: 256 }, (_, index) => {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    }
+    return value >>> 0;
+  });
+
+  return zipCrcTable.cache;
+}
+
+function crc32(bytes) {
+  const table = zipCrcTable();
+  let crc = 0xffffffff;
+  bytes.forEach((byte) => {
+    crc = table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  });
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime(date = new Date()) {
+  const year = Math.max(date.getFullYear(), 1980);
+  return {
+    time: (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+    date: ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate()
+  };
+}
+
+function writeUint16(target, value) {
+  target.push(value & 0xff, (value >>> 8) & 0xff);
+}
+
+function writeUint32(target, value) {
+  target.push(value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff);
+}
+
+function createZipArchive(files) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  const { time, date } = dosDateTime();
+  let offset = 0;
+
+  files.forEach((file) => {
+    const nameBytes = encoder.encode(file.name);
+    const fileBytes = file.bytes;
+    const checksum = crc32(fileBytes);
+    const localHeader = [];
+
+    writeUint32(localHeader, 0x04034b50);
+    writeUint16(localHeader, 20);
+    writeUint16(localHeader, 0);
+    writeUint16(localHeader, 0);
+    writeUint16(localHeader, time);
+    writeUint16(localHeader, date);
+    writeUint32(localHeader, checksum);
+    writeUint32(localHeader, fileBytes.length);
+    writeUint32(localHeader, fileBytes.length);
+    writeUint16(localHeader, nameBytes.length);
+    writeUint16(localHeader, 0);
+
+    localParts.push(new Uint8Array(localHeader), nameBytes, fileBytes);
+
+    const centralHeader = [];
+    writeUint32(centralHeader, 0x02014b50);
+    writeUint16(centralHeader, 20);
+    writeUint16(centralHeader, 20);
+    writeUint16(centralHeader, 0);
+    writeUint16(centralHeader, 0);
+    writeUint16(centralHeader, time);
+    writeUint16(centralHeader, date);
+    writeUint32(centralHeader, checksum);
+    writeUint32(centralHeader, fileBytes.length);
+    writeUint32(centralHeader, fileBytes.length);
+    writeUint16(centralHeader, nameBytes.length);
+    writeUint16(centralHeader, 0);
+    writeUint16(centralHeader, 0);
+    writeUint16(centralHeader, 0);
+    writeUint16(centralHeader, 0);
+    writeUint32(centralHeader, 0);
+    writeUint32(centralHeader, offset);
+
+    centralParts.push(new Uint8Array(centralHeader), nameBytes);
+    offset += localHeader.length + nameBytes.length + fileBytes.length;
+  });
+
+  const centralSize = centralParts.reduce((total, part) => total + part.length, 0);
+  const endRecord = [];
+  writeUint32(endRecord, 0x06054b50);
+  writeUint16(endRecord, 0);
+  writeUint16(endRecord, 0);
+  writeUint16(endRecord, files.length);
+  writeUint16(endRecord, files.length);
+  writeUint32(endRecord, centralSize);
+  writeUint32(endRecord, offset);
+  writeUint16(endRecord, 0);
+
+  return new Blob([...localParts, ...centralParts, new Uint8Array(endRecord)]);
 }
 
 function escapeHtml(value) {
@@ -2494,11 +2693,18 @@ function bindInputs() {
     }
   });
 
-  elements.downloadBtn.addEventListener("click", () => {
+  elements.downloadBtn.addEventListener("click", async () => {
     const html = buildExportDocument();
-    elements.exportCode.value = html;
-    downloadHtml(html);
-    showStatus("Downloaded");
+    showStatus("Building zip");
+    try {
+      const zipExport = await buildZipExport(html);
+      elements.exportCode.value = zipExport.html;
+      downloadBlob(zipExport.blob, `${downloadFilenameBase()}.zip`);
+      showStatus("Downloaded zip");
+    } catch {
+      elements.exportCode.value = html;
+      showStatus("Download failed");
+    }
   });
 
   document.querySelectorAll(".segment").forEach((button) => {

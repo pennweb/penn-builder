@@ -6,6 +6,7 @@ The compact project includes an optional local CMS backend.
 
 ```sh
 cd penn-builder-compact
+nvm use
 node server.js
 ```
 

@@ -2,13 +2,64 @@
 
 Penn Builder Compact is a static website builder prototype for composing a Penn-inspired site from editable sections, themes, typefaces, grouped navigation, parallax backgrounds, and packaged HTML exports.
 
-The app runs directly in a browser. No build step, framework, or package install is required.
+The app runs directly in a browser. No build step or framework install is required.
+
+## Requirements
+
+Static preview:
+
+- Any modern browser
+- Optional: Python 3 if you want to serve the folder locally with `python3 -m http.server`
+
+CMS backend:
+
+- `nvm`
+- Node `24.15.0`, pinned in `.nvmrc`
+- npm, included with Node
+- The system `sqlite3` command
+
+There are currently no npm package dependencies to install.
+
+## Install NVM
+
+If `nvm` is not installed, install it with:
+
+```sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+```
+
+Then restart your terminal, or load it in the current shell:
+
+```sh
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+```
+
+## First-Time Setup
+
+From the compact project folder:
+
+```sh
+cd "/Users/haasj/Documents/New project/penn-builder-compact"
+nvm install
+nvm use
+node -v
+npm -v
+sqlite3 --version
+```
+
+Expected Node version:
+
+```text
+v24.15.0
+```
 
 ## Open Locally As Static Files
 
 Open `index.html` in a browser, or serve the folder with any static server.
 
 ```sh
+cd "/Users/haasj/Documents/New project/penn-builder-compact"
 python3 -m http.server 4174
 ```
 
@@ -23,6 +74,7 @@ http://127.0.0.1:4174/
 The compact project also includes a small Node + SQLite CMS backend.
 
 ```sh
+cd "/Users/haasj/Documents/New project/penn-builder-compact"
 nvm use
 node server.js
 ```

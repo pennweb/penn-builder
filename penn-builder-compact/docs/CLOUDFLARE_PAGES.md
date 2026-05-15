@@ -42,7 +42,14 @@ POST /api/assets
 
 The schema is created automatically on first request.
 
-If you prefer file-based configuration, copy `wrangler.example.toml` to `wrangler.toml`, fill in the D1 `database_id`, and commit that real `wrangler.toml`.
+This project includes a committed `wrangler.toml` with the D1 binding:
+
+```text
+binding = "DB"
+database_name = "penn-builder-cms"
+```
+
+Cloudflare Pages reads that binding on deployment.
 
 ## Without D1
 

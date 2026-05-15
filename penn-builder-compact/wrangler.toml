@@ -1,0 +1,9 @@
+name = "penn-builder"
+compatibility_date = "2026-05-15"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "penn-builder-cms"
+database_id = "c02d875f-95d4-4855-9de8-e3597c6d5a15"
+

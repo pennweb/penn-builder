@@ -1,0 +1,74 @@
+# Cloudflare Pages Deployment
+
+Penn Builder Compact is ready for GitHub-connected Cloudflare Pages deployment.
+
+## Recommended Pages Settings
+
+In Cloudflare Pages, connect the GitHub repository and use these settings:
+
+```text
+Production branch: main
+Root directory: penn-builder-compact
+Framework preset: None
+Build command: exit 0
+Build output directory: /
+```
+
+This deploys `index.html`, `styles.css`, `script.js`, `assets/`, and the `functions/` API routes.
+
+## CMS Storage On Cloudflare
+
+The local `server.js` uses SQLite on your computer. Cloudflare Pages cannot run that Node server or write to that local SQLite file.
+
+For deployed CMS storage, use Cloudflare D1:
+
+1. In Cloudflare, create a D1 database, for example `penn-builder-cms`.
+2. Open the Pages project.
+3. Go to `Settings > Bindings`.
+4. Add a D1 database binding.
+5. Set the variable name to `DB`.
+6. Select the D1 database.
+7. Redeploy the Pages project.
+
+The included Pages Functions use the `DB` binding for:
+
+```text
+GET  /api/health
+GET  /api/site
+POST /api/site
+GET  /api/assets
+POST /api/assets
+```
+
+The schema is created automatically on first request.
+
+If you prefer file-based configuration, copy `wrangler.example.toml` to `wrangler.toml`, fill in the D1 `database_id`, and commit that real `wrangler.toml`.
+
+## Without D1
+
+The site still deploys and runs without the D1 binding. In that mode, the builder falls back to browser `localStorage`, so the public app works but shared CMS storage is off.
+
+## Local Development Choices
+
+Static-only local preview:
+
+```sh
+cd penn-builder-compact
+python3 -m http.server 4174
+```
+
+Local Node + SQLite CMS:
+
+```sh
+cd penn-builder-compact
+node server.js
+```
+
+Cloudflare-style local preview with Functions requires Wrangler:
+
+```sh
+cd penn-builder-compact
+npx wrangler pages dev . --d1 DB=<database-id>
+```
+
+For image-heavy production CMS usage, Cloudflare R2 is the better long-term home for uploaded image files. The current Cloudflare function keeps API compatibility and stores uploaded asset data in D1 when used.

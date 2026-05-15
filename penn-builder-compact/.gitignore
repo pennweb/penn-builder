@@ -1,0 +1,5 @@
+data/
+uploads/
+.wrangler/
+node_modules/
+

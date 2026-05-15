@@ -1,0 +1,12 @@
+name = "penn-builder-compact"
+compatibility_date = "2026-05-15"
+pages_build_output_dir = "."
+
+# Copy this file to wrangler.toml if you want to manage Cloudflare settings
+# from the repo instead of the Cloudflare dashboard.
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "penn-builder-cms"
+# database_id = "your-d1-database-id"
+

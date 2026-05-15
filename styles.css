@@ -628,12 +628,40 @@ button:focus-visible {
   background: color-mix(in srgb, var(--site-paper, #faf8f0) 84%, #ffffff);
 }
 
+.site-group.has-parallax :is(.site-hero, .site-section, .content-card, .accordion-item) {
+  background-color: color-mix(in srgb, var(--site-paper, #ffffff) 88%, transparent);
+}
+
+.site-group.has-parallax .site-section.split.blue,
+.site-group.has-parallax .content-card.blue {
+  background: color-mix(in srgb, var(--site-ink, #221f1a) 88%, transparent);
+}
+
+.site-group.has-parallax .site-section.split.red,
+.site-group.has-parallax .site-section.quote.red,
+.site-group.has-parallax .content-card.red {
+  background: color-mix(in srgb, var(--site-accent, #176c66) 88%, transparent);
+}
+
+.site-group.has-parallax .site-section.quote.blue {
+  background: color-mix(in srgb, var(--site-ink, #221f1a) 88%, transparent);
+}
+
+.site-group.has-parallax .site-section.quote.white,
+.site-group.has-parallax .site-section.split.white,
+.site-group.has-parallax .event-card {
+  background: color-mix(in srgb, #ffffff 88%, transparent);
+}
+
 .site-group-backdrop {
   position: absolute;
-  inset: -12% 0;
+  top: -120px;
+  right: 0;
+  bottom: -120px;
+  left: 0;
   z-index: 0;
   width: 100%;
-  height: 124%;
+  height: calc(100% + 240px);
   object-fit: cover;
   opacity: 0.16;
   transform: translateY(var(--parallax-offset, 0));

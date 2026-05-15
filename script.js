@@ -1976,12 +1976,15 @@ function renderPreview() {
   elements.exportCode.value = buildExportDocument();
 }
 
-function updateParallax(root = document) {
+function updateParallax(root = elements.sitePreview, viewport = elements.previewFrame) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+  const viewportRect = viewport ? viewport.getBoundingClientRect() : { top: 0 };
   root.querySelectorAll(".site-group.has-parallax").forEach((group) => {
     const rect = group.getBoundingClientRect();
-    group.style.setProperty("--parallax-offset", `${Math.round(rect.top * -0.12)}px`);
+    const relativeTop = rect.top - viewportRect.top;
+    const offset = Math.max(-90, Math.min(90, Math.round(relativeTop * -0.12)));
+    group.style.setProperty("--parallax-offset", `${offset}px`);
   });
 }
 
@@ -2408,7 +2411,12 @@ function buildExportDocument() {
     .site-logo img { display: block; width: 100%; height: auto; }
     .site-group { position: relative; isolation: isolate; overflow: hidden; scroll-margin-top: 76px; }
     .site-group.has-parallax { background: color-mix(in srgb, ${palette.paper} 84%, #ffffff); }
-    .site-group-backdrop { position: absolute; inset: -12% 0; z-index: 0; width: 100%; height: 124%; object-fit: cover; opacity: .16; transform: translateY(var(--parallax-offset, 0)); will-change: transform; pointer-events: none; }
+    .site-group.has-parallax :is(.site-hero, .site-section, .content-card, .accordion-item) { background-color: color-mix(in srgb, ${palette.paper} 88%, transparent); }
+    .site-group.has-parallax .site-section.split.blue, .site-group.has-parallax .content-card.blue { background: color-mix(in srgb, ${palette.ink} 88%, transparent); }
+    .site-group.has-parallax .site-section.split.red, .site-group.has-parallax .site-section.quote.red, .site-group.has-parallax .content-card.red { background: color-mix(in srgb, ${palette.accent} 88%, transparent); }
+    .site-group.has-parallax .site-section.quote.blue { background: color-mix(in srgb, ${palette.ink} 88%, transparent); }
+    .site-group.has-parallax .site-section.quote.white, .site-group.has-parallax .site-section.split.white, .site-group.has-parallax .event-card { background: color-mix(in srgb, #ffffff 88%, transparent); }
+    .site-group-backdrop { position: absolute; top: -120px; right: 0; bottom: -120px; left: 0; z-index: 0; width: 100%; height: calc(100% + 240px); object-fit: cover; opacity: .16; transform: translateY(var(--parallax-offset, 0)); will-change: transform; pointer-events: none; }
     .site-group-content { position: relative; z-index: 1; }
     .resources-menu { position: relative; font-family: ${activeFontStack()}; color: ${palette.ink}; z-index: 5; }
     .resources-menu summary { min-height: 38px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(0,0,0,.16); border-radius: 999px; padding: 0 13px; list-style: none; cursor: pointer; font-size: 12px; font-weight: 900; text-transform: uppercase; }
@@ -2556,7 +2564,8 @@ ${buildSiteHtml(false)}
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     document.querySelectorAll(".site-group.has-parallax").forEach((group) => {
       const rect = group.getBoundingClientRect();
-      group.style.setProperty("--parallax-offset", Math.round(rect.top * -0.12) + "px");
+      const offset = Math.max(-90, Math.min(90, Math.round(rect.top * -0.12)));
+      group.style.setProperty("--parallax-offset", offset + "px");
     });
   }
 
@@ -2614,6 +2623,8 @@ function updateSelectedSection(updater) {
 function bindInputs() {
   window.addEventListener("scroll", () => updateParallax(), { passive: true });
   window.addEventListener("resize", () => updateParallax(), { passive: true });
+  elements.previewFrame.addEventListener("scroll", () => updateParallax(), { passive: true });
+  elements.sitePreview.addEventListener("scroll", () => updateParallax(), { passive: true });
 
   window.addEventListener("pointermove", (event) => {
     if (!pointerDrag) return;

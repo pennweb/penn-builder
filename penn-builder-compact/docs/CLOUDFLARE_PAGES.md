@@ -48,6 +48,24 @@ If you prefer file-based configuration, copy `wrangler.example.toml` to `wrangle
 
 The site still deploys and runs without the D1 binding. In that mode, the builder falls back to browser `localStorage`, so the public app works but shared CMS storage is off.
 
+## Faster Deploys
+
+For this project, the fastest GitHub-connected Pages setup is:
+
+```text
+Root directory: penn-builder-compact
+Framework preset: None
+Build command: exit 0
+Build output directory: /
+```
+
+This avoids framework installs and build work because the project is already static HTML, CSS, JavaScript, assets, and Pages Functions.
+
+Cloudflare also offers build caching and Direct Uploads:
+
+- Build caching helps projects with dependency installs or generated output. It is less important here because there is no real build step.
+- Direct Upload with Wrangler can be faster for prebuilt assets, but it is a separate deployment workflow from the GitHub integration. Keep the GitHub integration if you want Cloudflare to deploy automatically after every push.
+
 ## Local Development Choices
 
 Static-only local preview:

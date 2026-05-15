@@ -26,8 +26,8 @@ const mimeTypes = {
 };
 
 function ensureStorage() {
-  fs.mkdirSync(dataDir, { recursive: true });
-  fs.mkdirSync(uploadsDir, { recursive: true });
+  ensureDirectory(dataDir);
+  ensureDirectory(uploadsDir);
   runSql([
     "CREATE TABLE IF NOT EXISTS site_state (",
     "  id INTEGER PRIMARY KEY CHECK (id = 1),",
@@ -42,6 +42,12 @@ function ensureStorage() {
     "  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP",
     ");"
   ].join("\n"));
+}
+
+function ensureDirectory(directoryPath) {
+  if (!fs.existsSync(directoryPath)) {
+    fs.mkdirSync(directoryPath);
+  }
 }
 
 function runSql(sql) {

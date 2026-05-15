@@ -23,8 +23,11 @@ http://127.0.0.1:4174/
 The compact project also includes a small Node + SQLite CMS backend.
 
 ```sh
+nvm use
 node server.js
 ```
+
+The project is pinned to Node `24.15.0` in `.nvmrc`.
 
 Then open:
 
